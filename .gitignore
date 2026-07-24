@@ -1,0 +1,31 @@
+# -  GGithubra feltöltendő anyagok kizárása
+
+# python cache:
+__pycache__/
+*.pyc
+
+
+# VS Code projekt-beállítások
+# (a settings.json-t mégis megtartjuk, mert hasznos megosztani a csapat/jövőbeli én számára,
+# de a személyes/gépspecifikus cuccokat kizárjuk)
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+
+# Virtuális környezet
+venv/
+
+
+
+# tömörített ideiglenes helyi fájlok
+*.zip
+*.tar.gz
+
+
+# Build kimenet
+dist/
+build/
+
+# Felhasználói projekt-adatok (futásidőben generált)
+Projektek/
