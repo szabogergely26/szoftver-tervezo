@@ -22,3 +22,17 @@ ASSETS_DIR = BASE_DIR / "assets"
 
 # az alkalmazás ikonja (tálca-/taskbar-ikon, ablakikon, stb.)
 ICON_PATH = ASSETS_DIR / "icons" / "app_icon.png"   
+
+
+
+
+
+# ---------- Verzió / kiadási csatorna ----------
+
+APP_VERSION = "0.1.0"
+
+# Lehetséges értékek: "dev", "preview", "stable"
+# FIGYELEM: ez az érték ágfüggő! dev-en "dev", preview-n "preview",
+# main-en "stable" legyen. Merge után kézzel vissza kell állítani az
+# adott ágnak megfelelő értékre, és külön commitolni (lásd CHANGELOG).
+BUILD_CHANNEL = "dev"

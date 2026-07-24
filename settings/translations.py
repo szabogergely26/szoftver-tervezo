@@ -78,23 +78,33 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     # --- Főablak ---
     "main.window_title": {"hu": "Tervező", "en": "Designer"},
     "main.menu.file": {"hu": "Fájl", "en": "File"},
+    "main.menu.help": {"hu": "Súgó", "en": "Help"},
     "main.action.new_project": {"hu": "Új projekt", "en": "New project"},
     "main.action.new_project_toolbar": {"hu": "+ Új projekt", "en": "+ New project"},
     "main.action.open": {"hu": "Megnyitás", "en": "Open"},
     "main.action.save": {"hu": "Mentés", "en": "Save"},
     "main.action.settings": {"hu": "Beállítások", "en": "Settings"},
+    
     "main.action.quit": {"hu": "Kilépés", "en": "Quit"},
     "main.toolbar.name": {"hu": "Eszköztár", "en": "Toolbar"},
     "main.project_exists": {
         "hu": "Már van ilyen nevű projekt.",
         "en": "A project with this name already exists.",
     },
+    "main.action.about": {"hu": "Névjegy", "en": "About"},
 
     "main.sidebar.placeholder": {
         "hu": "Válassz egy projektet a bal oldali listából.",
         "en": "Select a project from the list on the left.",
     },
 
+
+    # --- Névjegy ---
+    "about.title": {"hu": "Névjegy", "en": "About"},
+    "about.version": {"hu": "Verzió: {version}", "en": "Version: {version}"},
+    "about.channel_dev": {"hu": "Fejlesztői build (DEV)", "en": "Development build (DEV)"},
+    "about.channel_preview": {"hu": "Előzetes build (Preview)", "en": "Preview build"},
+    "about.channel_stable": {"hu": "Stabil kiadás", "en": "Stable release"},
 
 
 

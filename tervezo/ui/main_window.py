@@ -15,7 +15,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
 from ..core.storage import Storage
 from ..core.workspace import Workspace
 from .flow_layout import FlowLayout
@@ -23,7 +22,12 @@ from .new_project_dialog import NewProjectDialog
 from .project_dialog import ProjectDialog, ProjectDetailsWidget
 from .widgets import ProjectCard
 
-from config import ICON_PATH
+from config import (
+    ICON_PATH,
+    APP_VERSION,
+    BUILD_CHANNEL,
+)
+from .about_dialog import AboutDialog
 
 from settings.settings import (
     SettingsDialog, 
@@ -31,9 +35,7 @@ from settings.settings import (
     get_splitter_sizes,
     save_splitter_sizes,
     load_settings,
-    save_settings,
 )
-
 from settings.translations import tr, language_signal
 
 
@@ -58,10 +60,11 @@ class MainWindow(QMainWindow):
         self.reload_cards()
 
 
-
-        self.reload_cards()
-
         language_signal.changed.connect(self._on_language_changed)
+
+
+
+
 
     # ---------- UI ----------
     def _build_ui(self) -> None:
@@ -101,6 +104,8 @@ class MainWindow(QMainWindow):
     def _reset_sidebar_placeholder(self) -> None:
         while self.details_layout.count():
             item = self.details_layout.takeAt(0)
+            if item is None:
+                continue
             w = item.widget()
             if w:
                 w.deleteLater()
@@ -134,27 +139,61 @@ class MainWindow(QMainWindow):
 
     # ---------- Menü ----------
     def _build_menu(self):
-        self.file_menu = self.menuBar().addMenu("")
 
+        # Menüsáv létrehozása
+        menu_bar = self.menuBar()
+
+
+
+        # -- Fájl menü
+        # a "Fájl" menü elrejtése, ha nincs benne semmi, retranslate_ui() hívja majd a szöveget
+        self.file_menu = menu_bar.addMenu("")
+
+        # Menüpontok létrehozása és hozzáadása a Fájl menühöz
+        # Új projekt
         self.new_project_action = QAction(QIcon.fromTheme("document-new"), "", self)
         self.new_project_action.triggered.connect(self.new_project)
         self.file_menu.addAction(self.new_project_action)
 
+        # Megnyitás
         self.open_action = QAction(QIcon.fromTheme("document-open"), "", self)
         self.file_menu.addAction(self.open_action)
 
+        # Mentés
         self.save_action = QAction(QIcon.fromTheme("document-save"), "", self)
         self.file_menu.addAction(self.save_action)
 
         self.file_menu.addSeparator()
 
+        # Beállítások
         self.settings_action = QAction(QIcon.fromTheme("preferences-system"), "", self)
         self.settings_action.triggered.connect(self.open_settings)
         self.file_menu.addAction(self.settings_action)
 
+
+        self.file_menu.addSeparator()
+
+        # Kilépés
         self.quit_action = QAction(QIcon.fromTheme("application-exit"), "", self)
         self.quit_action.triggered.connect(self.close)
         self.file_menu.addAction(self.quit_action)
+
+
+
+
+
+
+        # ---------- Súgó menü  ----------
+        # Súgó menü létrehozása
+        self.help_menu = menu_bar.addMenu("")  # a szöveget retranslate_ui() hívja majd
+
+        # Menü feltöltése
+
+        # Névjegy
+        self.about_action = QAction(QIcon.fromTheme("help-about"), "", self)
+        self.about_action.triggered.connect(self.open_about)
+        self.help_menu.addAction(self.about_action)
+
 
     def open_settings(self) -> None:
         dialog = SettingsDialog(self)
@@ -165,6 +204,13 @@ class MainWindow(QMainWindow):
 
             self._reset_sidebar_placeholder()
             self._apply_view_mode_visibility()
+
+
+    def open_about(self) -> None:
+        dialog = AboutDialog(self)
+        dialog.exec()
+
+
 
     def _build_toolbar(self) -> None:
         self.toolbar = QToolBar("", self)
@@ -184,8 +230,19 @@ class MainWindow(QMainWindow):
         self.retranslate_ui()
         self.reload_cards()
 
+
+
+    def _build_window_title(self) -> str:
+        base = tr("main.window_title")
+        if BUILD_CHANNEL == "dev":
+            return f"{base} - DEV - v{APP_VERSION}"
+        if BUILD_CHANNEL == "preview":
+            return f"{base} - Preview - v{APP_VERSION}"
+        return base
+
+
     def retranslate_ui(self) -> None:
-        self.setWindowTitle(tr("main.window_title"))
+        self.setWindowTitle(self._build_window_title())
 
         self.file_menu.setTitle(tr("main.menu.file"))
         self.new_project_action.setText(tr("main.action.new_project"))
@@ -196,6 +253,11 @@ class MainWindow(QMainWindow):
 
         self.toolbar.setWindowTitle(tr("main.toolbar.name"))
         self.act_new_project_toolbar.setText(tr("main.action.new_project_toolbar"))
+        self.about_action.setText(tr("main.action.about"))
+
+        self.help_menu.setTitle(tr("main.menu.help"))
+
+
 
     # ---------- Kártyák ----------
     def reload_cards(self) -> None:
@@ -226,6 +288,8 @@ class MainWindow(QMainWindow):
     def _open_project_in_sidebar(self, project_dir: Path) -> None:
         while self.details_layout.count():
             item = self.details_layout.takeAt(0)
+            if item is None:
+                continue
             w = item.widget()
             if w:
                 w.deleteLater()

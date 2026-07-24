@@ -4,9 +4,9 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 from config import ICON_PATH
+from settings import apply_saved_language
 from tervezo.ui.main_window import MainWindow
 
-from settings import apply_saved_language
 
 def main() -> int:
     app = QApplication(sys.argv)
