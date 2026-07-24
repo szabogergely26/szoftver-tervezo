@@ -14,9 +14,11 @@ from PySide6.QtWidgets import (
     QWidget,
     QComboBox,
     QFormLayout,
+    QPushButton,
+    QCheckBox,
 )
 from PySide6.QtGui import QIcon
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 
 
 import json

@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..core.models import ProjectStatus, TaskItem
+from ..core.models import ProjectStatus, TaskItem, TaskStatus
 from ..core.storage import Storage
 from .widgets import MilestoneDialog, TaskEditDialog, TaskRowWidget, build_richtext_toolbar
 from settings.translations import tr
@@ -40,9 +40,9 @@ class ProjectDetailsWidget(QWidget):
     close_requested = Signal()
 
     def __init__(
-        self, 
-        storage: Storage, 
-        project_dir: Path, 
+        self,
+        storage: Storage,
+        project_dir: Path,
         parent: QWidget | None = None,
         show_close_button: bool = True,
     ):
@@ -75,7 +75,7 @@ class ProjectDetailsWidget(QWidget):
             close_btn = QPushButton(tr("common.close"))
             close_btn.clicked.connect(self.close_requested.emit)
             button_row.addWidget(close_btn)
-    
+
         layout.addLayout(button_row)
 
     # ---------- Áttekintés ----------
@@ -190,6 +190,12 @@ class ProjectDetailsWidget(QWidget):
 
         self.tabs.addTab(next_tab, tr("project.tab.next_tasks"))
 
+        in_progress_tab = QWidget()
+        in_progress_layout = QVBoxLayout(in_progress_tab)
+        self.in_progress_tasks_list = QListWidget()
+        in_progress_layout.addWidget(self.in_progress_tasks_list, 1)
+        self.tabs.addTab(in_progress_tab, tr("project.tab.in_progress_tasks"))
+
         done_tab = QWidget()
         done_layout = QVBoxLayout(done_tab)
         self.done_tasks_list = QListWidget()
@@ -200,16 +206,26 @@ class ProjectDetailsWidget(QWidget):
 
     def _reload_tasks(self) -> None:
         self.next_tasks_list.clear()
+        self.in_progress_tasks_list.clear()
         self.done_tasks_list.clear()
+
+        list_by_status = {
+            TaskStatus.PENDING: (self.next_tasks_list, "pending"),
+            TaskStatus.IN_PROGRESS: (self.in_progress_tasks_list, "in_progress"),
+            TaskStatus.DONE: (self.done_tasks_list, "done"),
+        }
+
         for task in self.tasks:
-            row = TaskRowWidget(task)
+            target_list, mode = list_by_status[task.status]
+
+            row = TaskRowWidget(task, mode=mode)
+            row.start_requested.connect(self._on_task_start)
             row.toggled.connect(self._on_task_toggled)
             row.edit_requested.connect(self._on_task_edit)
             row.delete_requested.connect(self._on_task_delete)
 
             item = QListWidgetItem()
             item.setSizeHint(row.sizeHint())
-            target_list = self.done_tasks_list if task.done else self.next_tasks_list
             target_list.addItem(item)
             target_list.setItemWidget(item, row)
 
@@ -218,14 +234,22 @@ class ProjectDetailsWidget(QWidget):
         if not text:
             return
         new_id = self.storage.next_task_id(self.tasks)
-        self.tasks.append(TaskItem(id=new_id, html=text, done=False))
+        self.tasks.append(TaskItem(id=new_id, html=text, status=TaskStatus.PENDING))
         self.new_task_edit.clear()
         self._reload_tasks()
 
-    def _on_task_toggled(self, task_id: int, done: bool) -> None:
+    def _on_task_start(self, task_id: int) -> None:
         for t in self.tasks:
             if t.id == task_id:
-                t.done = done
+                t.status = TaskStatus.IN_PROGRESS
+                break
+        self._reload_tasks()
+
+    def _on_task_toggled(self, task_id: int, checked: bool) -> None:
+        # checked=True: folyamatban -> kész. checked=False: kész -> folyamatban.
+        for t in self.tasks:
+            if t.id == task_id:
+                t.status = TaskStatus.DONE if checked else TaskStatus.IN_PROGRESS
                 break
         self._reload_tasks()
 

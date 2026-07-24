@@ -64,9 +64,18 @@ class Milestone:
         )
 
 
+
+
+
+class TaskStatus(Enum):
+    PENDING = "pending"          # Következő feladatok
+    IN_PROGRESS = "in_progress"  # Folyamatban lévő feladatok
+    DONE = "done"                # Elkészült feladatok
+
+
 @dataclass
 class TaskItem:
-    """Egy feladat-sor a 'Következő feladatok' / 'Elkészült feladatok' listákban.
+    """Egy feladat-sor a 'Következő' / 'Folyamatban' / 'Elkészült' listákban.
 
     A `html` mező rich-text tartalmat hordoz (félkövér, szín, stb.),
     ezért nem sima `text: str`.
@@ -74,18 +83,27 @@ class TaskItem:
 
     id: int
     html: str
-    done: bool = False
+    status: TaskStatus = TaskStatus.PENDING
 
     def to_dict(self) -> dict:
-        return {"id": self.id, "html": self.html, "done": self.done}
+        return {"id": self.id, "html": self.html, "status": self.status.value}
 
     @staticmethod
     def from_dict(data: dict) -> "TaskItem":
-        return TaskItem(
-            id=data["id"],
-            html=data.get("html", ""),
-            done=data.get("done", False),
-        )
+        # Visszafelé kompatibilitás: a régi mentések 'done': bool mezőt
+        # tartalmaznak, státusz mező helyett.
+        if "status" in data:
+            status = TaskStatus(data["status"])
+        else:
+            status = TaskStatus.DONE if data.get("done") else TaskStatus.PENDING
+
+        return TaskItem(id=data["id"], html=data.get("html", ""), status=status)
+
+    @property
+    def done(self) -> bool:
+        """Visszafelé kompatibilitás régi hívásoknak, amik 'done'-t várnak."""
+        return self.status == TaskStatus.DONE
+
 
 
 @dataclass

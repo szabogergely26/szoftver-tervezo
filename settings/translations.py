@@ -144,7 +144,9 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "project.tab.overview": {"hu": "Áttekintés", "en": "Overview"},
     "project.tab.journal": {"hu": "Napló", "en": "Journal"},
     "project.tab.next_tasks": {"hu": "Következő feladatok", "en": "Upcoming tasks"},
+    "project.tab.in_progress_tasks": {"hu": "Folyamatban lévő feladatok", "en": "In-progress tasks"},
     "project.tab.done_tasks": {"hu": "Elkészült feladatok", "en": "Completed tasks"},
+
     "project.purpose_label": {"hu": "Mire jó a program:", "en": "What is the program for:"},
     "project.description_label": {
         "hu": "Rövid leírás (kártyán):",

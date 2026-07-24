@@ -111,25 +111,31 @@ class ProjectCard(QFrame):
 
 
 class TaskRowWidget(QWidget):
-    """Egy feladat-sor: pipa + gazdag-szöveges (HTML) tartalom + szerkesztés/törlés."""
+    """Egy feladat-sor: pipa/gomb + gazdag-szöveges (HTML) tartalom + szerkesztés/törlés."""
 
+    start_requested = Signal(int)
     toggled = Signal(int, bool)
     edit_requested = Signal(int)
     delete_requested = Signal(int)
 
-    def __init__(self, task: TaskItem, parent: QWidget | None = None):
+    def __init__(self, task: TaskItem, mode: str = "pending", parent: QWidget | None = None):
         super().__init__(parent)
         self.task_id = task.id
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(4, 2, 4, 2)
 
-        self.checkbox = QCheckBox()
-        self.checkbox.setChecked(task.done)
-        self.checkbox.toggled.connect(
-            lambda checked: self.toggled.emit(self.task_id, checked)
-        )
-        layout.addWidget(self.checkbox)
+        if mode == "pending":
+            start_btn = QPushButton(tr("project.task.start"))
+            start_btn.clicked.connect(lambda: self.start_requested.emit(self.task_id))
+            layout.addWidget(start_btn)
+        else:
+            self.checkbox = QCheckBox()
+            self.checkbox.setChecked(mode == "done")
+            self.checkbox.toggled.connect(
+                lambda checked: self.toggled.emit(self.task_id, checked)
+            )
+            layout.addWidget(self.checkbox)
 
         self.label = QLabel()
         self.label.setTextFormat(Qt.TextFormat.RichText)
