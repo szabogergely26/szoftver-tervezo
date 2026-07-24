@@ -15,6 +15,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from settings.translations import tr
+
 
 class NewProjectDialog(QDialog):
     """'Új projekt' varázsló — a Film-Adatbázis 'Új bejegyzés' mintájára.
@@ -29,34 +31,34 @@ class NewProjectDialog(QDialog):
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-        self.setWindowTitle("Új projekt")
+        self.setWindowTitle(tr("new_project.title"))
         self.resize(440, 460)
         self._photo_path: Path | None = None
 
         layout = QFormLayout(self)
 
         photo_row = QHBoxLayout()
-        self.photo_label = QLabel("Nincs kiválasztva")
-        photo_btn = QPushButton("Tallózás...")
+        self.photo_label = QLabel(tr("new_project.no_photo"))
+        photo_btn = QPushButton(tr("common.browse_ellipsis"))
         photo_btn.clicked.connect(self._choose_photo)
         photo_row.addWidget(self.photo_label, 1)
         photo_row.addWidget(photo_btn)
-        layout.addRow("Fotó (opcionális):", photo_row)
+        layout.addRow(tr("new_project.photo_label"), photo_row)
 
         self.name_edit = QLineEdit()
-        layout.addRow("Név *:", self.name_edit)
+        layout.addRow(tr("new_project.name_label"), self.name_edit)
 
         self.description_edit = QLineEdit()
-        layout.addRow("Rövid leírás (ajánlott):", self.description_edit)
+        layout.addRow(tr("new_project.description_label"), self.description_edit)
 
         self.purpose_edit = QPlainTextEdit()
         self.purpose_edit.setFixedHeight(90)
-        layout.addRow("Mire jó a program *:", self.purpose_edit)
+        layout.addRow(tr("new_project.purpose_label"), self.purpose_edit)
 
         self.tasks_edit = QPlainTextEdit()
         self.tasks_edit.setFixedHeight(90)
-        self.tasks_edit.setPlaceholderText("Egy sor = egy feladat")
-        layout.addRow("Kezdeti feladatok:", self.tasks_edit)
+        self.tasks_edit.setPlaceholderText(tr("new_project.tasks_placeholder"))
+        layout.addRow(tr("new_project.tasks_label"), self.tasks_edit)
 
         self.error_label = QLabel()
         self.error_label.setStyleSheet("color: #d9534f;")
@@ -72,7 +74,10 @@ class NewProjectDialog(QDialog):
 
     def _choose_photo(self) -> None:
         path, _ = QFileDialog.getOpenFileName(
-            self, "Fotó kiválasztása", "", "Képek (*.png *.jpg *.jpeg *.webp)"
+            self,
+            tr("new_project.choose_photo_title"),
+            "",
+            tr("new_project.choose_photo_filter"),
         )
         if path:
             self._photo_path = Path(path)
@@ -82,9 +87,7 @@ class NewProjectDialog(QDialog):
         name = self.name_edit.text().strip()
         purpose = self.purpose_edit.toPlainText().strip()
         if not name or not purpose:
-            self.error_label.setText(
-                "A Név és a 'Mire jó a program' mező kitöltése kötelező."
-            )
+            self.error_label.setText(tr("new_project.error_required"))
             self.error_label.setVisible(True)
             return
         self.accept()

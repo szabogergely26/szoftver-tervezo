@@ -26,6 +26,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core.models import Milestone, Project, TaskItem
+from settings.translations import tr
 
 CARD_WIDTH = 200
 CARD_HEIGHT = 220
@@ -86,7 +87,7 @@ class ProjectCard(QFrame):
         status_dot.setStyleSheet(
             f"background-color: {project.status.color}; border-radius: 7px;"
         )
-        status_dot.setToolTip(project.status.label_hu)
+        status_dot.setToolTip(project.status.label)
 
         header.addWidget(name_label, 1)
         header.addWidget(status_dot, 0, Qt.AlignmentFlag.AlignTop)
@@ -136,11 +137,11 @@ class TaskRowWidget(QWidget):
         self.label.setWordWrap(True)
         layout.addWidget(self.label, 1)
 
-        edit_btn = QPushButton("Szerkesztés")
+        edit_btn = QPushButton(tr("common.edit"))
         edit_btn.clicked.connect(lambda: self.edit_requested.emit(self.task_id))
         layout.addWidget(edit_btn)
 
-        delete_btn = QPushButton("Törlés")
+        delete_btn = QPushButton(tr("common.delete"))
         delete_btn.clicked.connect(lambda: self.delete_requested.emit(self.task_id))
         layout.addWidget(delete_btn)
 
@@ -155,7 +156,7 @@ class MilestoneDialog(QDialog):
         self, parent: QWidget | None = None, milestone: Milestone | None = None
     ):
         super().__init__(parent)
-        self.setWindowTitle("Mérföldkő")
+        self.setWindowTitle(tr("widgets.milestone_title"))
 
         layout = QFormLayout(self)
 
@@ -163,15 +164,15 @@ class MilestoneDialog(QDialog):
             milestone.date if milestone else date.today().strftime("%Y.%m.%d")
         )
         self.date_edit = QLineEdit(default_date)
-        self.date_edit.setPlaceholderText("ÉÉÉÉ.HH.NN")
-        layout.addRow("Dátum:", self.date_edit)
+        self.date_edit.setPlaceholderText(tr("common.date_placeholder"))
+        layout.addRow(tr("widgets.milestone_date_label"), self.date_edit)
 
         self.title_edit = QLineEdit(milestone.title if milestone else "")
-        layout.addRow("Cím:", self.title_edit)
+        layout.addRow(tr("widgets.milestone_name_label"), self.title_edit)
 
         self.desc_edit = QPlainTextEdit(milestone.description if milestone else "")
         self.desc_edit.setFixedHeight(80)
-        layout.addRow("Leírás:", self.desc_edit)
+        layout.addRow(tr("widgets.milestone_description_label"), self.desc_edit)
 
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
@@ -196,7 +197,7 @@ class TaskEditDialog(QDialog):
 
     def __init__(self, parent: QWidget | None = None, html: str = ""):
         super().__init__(parent)
-        self.setWindowTitle("Feladat szerkesztése")
+        self.setWindowTitle(tr("widgets.task_edit_title"))
         self.resize(420, 220)
 
         layout = QVBoxLayout(self)
@@ -307,17 +308,17 @@ def build_richtext_toolbar(target: QTextEdit, parent: QWidget) -> QToolBar:
             cursor.mergeCharFormat(fmt)
         target.mergeCurrentCharFormat(fmt)
 
-    act_bold = QAction(_text_icon("B", bold=True), "Félkövér", parent)
+    act_bold = QAction(_text_icon("B", bold=True), tr("toolbar.bold"), parent)
     act_bold.setCheckable(True)
     act_bold.triggered.connect(lambda checked: set_char_format(bold=checked))
     tb.addAction(act_bold)
 
-    act_italic = QAction(_text_icon("I", italic=True), "Dőlt", parent)
+    act_italic = QAction(_text_icon("I", italic=True), tr("toolbar.italic"), parent)
     act_italic.setCheckable(True)
     act_italic.triggered.connect(lambda checked: set_char_format(italic=checked))
     tb.addAction(act_italic)
 
-    act_underline = QAction(_text_icon("U", underline=True), "Aláhúzott", parent)
+    act_underline = QAction(_text_icon("U", underline=True), tr("toolbar.underline"), parent)
     act_underline.setCheckable(True)
     act_underline.triggered.connect(
         lambda checked: set_char_format(underline=checked)
@@ -329,8 +330,8 @@ def build_richtext_toolbar(target: QTextEdit, parent: QWidget) -> QToolBar:
     # --- Kiemelés (klasszikus minta: szín-négyzet gomb + legördülő nyíl) ---
     highlight_btn = QToolButton(parent)
     highlight_btn.setCheckable(True)
-    highlight_btn.setText("Kiemelés")
-    highlight_btn.setToolTip("Kiemelés")
+    highlight_btn.setText(tr("toolbar.highlight"))
+    highlight_btn.setToolTip(tr("toolbar.highlight"))
     highlight_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
     highlight_btn.setIconSize(QSize(20, 20))
     highlight_btn.setIcon(_color_swatch_icon(state["highlight_color"], size=20))
@@ -346,7 +347,7 @@ def build_richtext_toolbar(target: QTextEdit, parent: QWidget) -> QToolBar:
         set_char_format(background=color)
 
     highlight_menu = QMenu(highlight_btn)
-    act_pick_highlight = QAction("Egyéni szín...", parent)
+    act_pick_highlight = QAction(tr("common.custom_color_ellipsis"), parent)
     act_pick_highlight.triggered.connect(pick_highlight_color)
     highlight_menu.addAction(act_pick_highlight)
     highlight_btn.setMenu(highlight_menu)
@@ -365,8 +366,8 @@ def build_richtext_toolbar(target: QTextEdit, parent: QWidget) -> QToolBar:
     # --- Betűszín (ugyanez a minta) ---
     color_btn = QToolButton(parent)
     color_btn.setCheckable(True)
-    color_btn.setText("Betűszín")
-    color_btn.setToolTip("Betűszín")
+    color_btn.setText(tr("toolbar.text_color"))
+    color_btn.setToolTip(tr("toolbar.text_color"))
     color_btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
     color_btn.setIconSize(QSize(20, 20))
     color_btn.setIcon(_color_swatch_icon(state["text_color"], size=20))
@@ -382,7 +383,7 @@ def build_richtext_toolbar(target: QTextEdit, parent: QWidget) -> QToolBar:
         set_char_format(color=color)
 
     color_menu = QMenu(color_btn)
-    act_pick_color = QAction("Egyéni szín...", parent)
+    act_pick_color = QAction(tr("common.custom_color_ellipsis"), parent)
     act_pick_color.triggered.connect(pick_text_color)
     color_menu.addAction(act_pick_color)
     color_btn.setMenu(color_menu)
@@ -414,7 +415,7 @@ def build_richtext_toolbar(target: QTextEdit, parent: QWidget) -> QToolBar:
     size_layout.setContentsMargins(8, 8, 8, 8)
     size_layout.setSpacing(2)
     size_layout.addWidget(size_box)
-    size_caption = QLabel("Betűméret")
+    size_caption = QLabel(tr("toolbar.font_size"))
     size_caption.setAlignment(Qt.AlignmentFlag.AlignCenter)
     size_caption.setStyleSheet("font-size: 10px;")
     size_layout.addWidget(size_caption)

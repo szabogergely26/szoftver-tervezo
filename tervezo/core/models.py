@@ -4,6 +4,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 
+from settings.translations import tr
+
 
 class ProjectStatus(Enum):
     NOT_STARTED = "not_started"
@@ -28,12 +30,18 @@ class ProjectStatus(Enum):
         }[self]
 
     @property
-    def label_hu(self) -> str:
+    def label(self) -> str:
+        """A jelenlegi nyelven megjelenítendő státusz-felirat."""
         return {
-            ProjectStatus.NOT_STARTED: "El sincs kezdve",
-            ProjectStatus.IN_PROGRESS: "Folyamatban",
-            ProjectStatus.DONE: "Kész",
+            ProjectStatus.NOT_STARTED: tr("status.not_started"),
+            ProjectStatus.IN_PROGRESS: tr("status.in_progress"),
+            ProjectStatus.DONE: tr("status.done"),
         }[self]
+
+    # Visszafelé kompatibilitás – régi hívások, amik még label_hu-t várnak.
+    @property
+    def label_hu(self) -> str:
+        return self.label
 
 
 @dataclass

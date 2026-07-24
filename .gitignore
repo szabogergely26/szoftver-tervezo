@@ -29,3 +29,8 @@ build/
 
 # Felhasználói projekt-adatok (futásidőben generált)
 Projektek/
+
+
+
+# Szoftver által tárolt beállítások
+settings.json
