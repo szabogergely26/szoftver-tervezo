@@ -43,9 +43,10 @@ class ProjectCard(QFrame):
         self.project = project
 
         self.setFixedSize(CARD_WIDTH, CARD_HEIGHT)
-        self.setFrameShape(QFrame.Shape.StyledPanel)
+        self.setFrameShape(QFrame.Shape.NoFrame)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setObjectName("ProjectCard")
+        self.setStyleSheet("#ProjectCard { border: 1px solid #ccc; }")
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(8, 8, 8, 8)
@@ -155,6 +156,8 @@ class TaskRowWidget(QWidget):
         self.label.setText(html)
 
 
+
+        
 class MilestoneDialog(QDialog):
     """Mérföldkő felvétele / szerkesztése (dátum, cím, rövid leírás)."""
 
