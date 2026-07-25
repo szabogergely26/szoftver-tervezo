@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QPixmap
 
 from PySide6.QtWidgets import (
@@ -184,11 +184,21 @@ class ProjectDetailsWidget(QWidget):
 
 
     def _on_choose_cover(self) -> None:
+        # A dialógust csak a kattintás eseményének teljes lezárása UTÁN
+        # nyitjuk meg (singleShot(0, ...)): ha a modális fájlválasztót
+        # közvetlenül a "clicked" jelzésből, szinkron módon nyitjuk meg,
+        # a Qt belső "egér alatti widget" nyomkövetése inkonzisztens
+        # állapotba kerülhet a dialógus bezárásakor, ami natív
+        # szegmentálási hibát okoz (dangling widget-mutató).
+        QTimer.singleShot(0, self._open_cover_dialog)
+
+    def _open_cover_dialog(self) -> None:
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "Borítókép választása",
             "",
             "Képek (*.png *.jpg *.jpeg *.bmp *.webp)",
+            options=QFileDialog.Option.DontUseNativeDialog,
         )
         if not file_path:
             return

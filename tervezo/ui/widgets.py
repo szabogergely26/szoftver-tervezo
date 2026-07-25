@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from PySide6.QtCore import QSize, Qt, Signal
+from PySide6.QtCore import QSize, Qt, QTimer, Signal
 from PySide6.QtGui import QAction, QBrush, QColor, QIcon, QPainter, QPixmap, QTextCharFormat
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -52,31 +52,26 @@ class ProjectCard(QFrame):
         layout.setContentsMargins(8, 8, 8, 8)
         layout.setSpacing(6)
 
-        photo_label = QLabel()
-        photo_label.setFixedHeight(PHOTO_HEIGHT)
-        photo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        photo_label.setStyleSheet(
+        self.photo_label = QLabel()
+        self.photo_label.setFixedHeight(PHOTO_HEIGHT)
+        self.photo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.photo_label.setStyleSheet(
             "background-color: rgba(127,127,127,40); border-radius: 4px;"
         )
+        self.photo_label.setText("📁")
+        self.photo_label.setStyleSheet(
+            self.photo_label.styleSheet() + "font-size: 32px;"
+        )
+        layout.addWidget(self.photo_label)
 
-        pixmap: QPixmap | None = None
-        if project.photo_path and project.photo_path.exists():
-            candidate = QPixmap(str(project.photo_path))
-            if not candidate.isNull():
-                pixmap = candidate
-
-        if pixmap is not None:
-            photo_label.setPixmap(
-                pixmap.scaledToHeight(
-                    PHOTO_HEIGHT, Qt.TransformationMode.SmoothTransformation
-                )
-            )
-        else:
-            photo_label.setText("📁")
-            photo_label.setStyleSheet(
-                photo_label.styleSheet() + "font-size: 32px;"
-            )
-        layout.addWidget(photo_label)
+        # A borítókép betöltését (fájl-IO + dekódolás) a widget felépítése
+        # UTÁN, a következő eseményhurok-ciklusban végezzük el
+        # (singleShot(0, ...)): ha ez szinkron történik a kártya
+        # létrehozásakor - még mielőtt a kártya a szülő elrendezésbe
+        # kerülne és Qt lezárná a widget-hierarchia felépítését -, az
+        # ugyanabba a natív dangling-widget hibaosztályba tartozhat, mint
+        # amit a fájlválasztónál tapasztaltunk.
+        QTimer.singleShot(0, self._load_cover_photo)
 
         header = QHBoxLayout()
         name_label = QLabel(project.name)
@@ -99,6 +94,24 @@ class ProjectCard(QFrame):
         desc_label.setWordWrap(True)
         desc_label.setStyleSheet("font-size: 11px;")
         layout.addWidget(desc_label, 1)
+
+    def _load_cover_photo(self) -> None:
+        pixmap: QPixmap | None = None
+        if self.project.photo_path and self.project.photo_path.exists():
+            candidate = QPixmap(str(self.project.photo_path))
+            if not candidate.isNull():
+                pixmap = candidate
+
+        if pixmap is not None:
+            self.photo_label.setStyleSheet(
+                "background-color: rgba(127,127,127,40); border-radius: 4px;"
+            )
+            self.photo_label.setText("")
+            self.photo_label.setPixmap(
+                pixmap.scaledToHeight(
+                    PHOTO_HEIGHT, Qt.TransformationMode.SmoothTransformation
+                )
+            )
 
     def mousePressEvent(self, event) -> None:  # noqa: N802 (Qt override)
         # FONTOS: a super() hívás előrébb van, mint az emit — ha a kattintás

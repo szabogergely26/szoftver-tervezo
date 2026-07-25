@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
@@ -73,11 +74,21 @@ class NewProjectDialog(QDialog):
         layout.addRow(buttons)
 
     def _choose_photo(self) -> None:
+        # A dialógust csak a kattintás eseményének teljes lezárása UTÁN
+        # nyitjuk meg (singleShot(0, ...)): ha a modális fájlválasztót
+        # közvetlenül a "clicked" jelzésből, szinkron módon nyitjuk meg,
+        # a Qt belső "egér alatti widget" nyomkövetése inkonzisztens
+        # állapotba kerülhet a dialógus bezárásakor, ami natív
+        # szegmentálási hibát okoz (dangling widget-mutató).
+        QTimer.singleShot(0, self._open_photo_dialog)
+
+    def _open_photo_dialog(self) -> None:
         path, _ = QFileDialog.getOpenFileName(
             self,
             tr("new_project.choose_photo_title"),
             "",
             tr("new_project.choose_photo_filter"),
+            options=QFileDialog.Option.DontUseNativeDialog,
         )
         if path:
             self._photo_path = Path(path)
