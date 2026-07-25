@@ -1,0 +1,259 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[New Thread 0x7ffff113f6c0 (LWP 211811)]
+[New Thread 0x7ffff093e6c0 (LWP 211812)]
+[New Thread 0x7fffea42b6c0 (LWP 211813)]
+[New Thread 0x7fffe9c2a6c0 (LWP 211814)]
+[New Thread 0x7fffe94296c0 (LWP 211815)]
+[New Thread 0x7fffe8c286c0 (LWP 211816)]
+[New Thread 0x7fffd7fff6c0 (LWP 211817)]
+[New Thread 0x7fffd77fe6c0 (LWP 211818)]
+[New Thread 0x7fffd6ffd6c0 (LWP 212077)]
+[Thread 0x7fffd6ffd6c0 (LWP 212077) exited]
+[New Thread 0x7fffd6ffd6c0 (LWP 212270)]
+[Thread 0x7fffd6ffd6c0 (LWP 212270) exited]
+
+Thread 1 "python" received signal SIGSEGV, Segmentation fault.
+0x00007ffff17dd255 in QWidget::testAttribute_helper(Qt::WidgetAttribute) const () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Widgets.so.6
+
+Thread 9 (Thread 0x7fffd77fe6c0 (LWP 211818) "Thread (pooled)"):
+#0  0x00007ffff7d0a9ee in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#1  0x00007ffff7cff668 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#2  0x00007ffff7cffc8c in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#3  0x00007ffff7d0231d in pthread_cond_timedwait () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#4  0x00007ffff5963a8e in QWaitCondition::wait(QMutex*, QDeadlineTimer) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#5  0x00007ffff58ac342 in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#6  0x00007ffff595ba5e in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#7  0x00007ffff7d02b7b in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#8  0x00007ffff7d807f8 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+
+Thread 8 (Thread 0x7fffd7fff6c0 (LWP 211817) "Thread (pooled)"):
+#0  0x00007ffff7d0a9ee in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#1  0x00007ffff7cff668 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#2  0x00007ffff7cffc8c in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#3  0x00007ffff7d0231d in pthread_cond_timedwait () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#4  0x00007ffff5963a8e in QWaitCondition::wait(QMutex*, QDeadlineTimer) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#5  0x00007ffff58ac342 in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#6  0x00007ffff595ba5e in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#7  0x00007ffff7d02b7b in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#8  0x00007ffff7d807f8 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+
+Thread 7 (Thread 0x7fffe8c286c0 (LWP 211816) "Thread (pooled)"):
+#0  0x00007ffff7d0a9ee in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#1  0x00007ffff7cff668 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#2  0x00007ffff7cffc8c in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#3  0x00007ffff7d0231d in pthread_cond_timedwait () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#4  0x00007ffff5963a8e in QWaitCondition::wait(QMutex*, QDeadlineTimer) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#5  0x00007ffff58ac342 in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#6  0x00007ffff595ba5e in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#7  0x00007ffff7d02b7b in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#8  0x00007ffff7d807f8 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+
+Thread 6 (Thread 0x7fffe94296c0 (LWP 211815) "Thread (pooled)"):
+#0  0x00007ffff7d0a9ee in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#1  0x00007ffff7cff668 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#2  0x00007ffff7cffc8c in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#3  0x00007ffff7d0231d in pthread_cond_timedwait () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#4  0x00007ffff5963a8e in QWaitCondition::wait(QMutex*, QDeadlineTimer) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#5  0x00007ffff58ac342 in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#6  0x00007ffff595ba5e in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#7  0x00007ffff7d02b7b in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#8  0x00007ffff7d807f8 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+
+Thread 5 (Thread 0x7fffe9c2a6c0 (LWP 211814) "Thread (pooled)"):
+#0  0x00007ffff7d0a9ee in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#1  0x00007ffff7cff668 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#2  0x00007ffff7cffc8c in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#3  0x00007ffff7d0231d in pthread_cond_timedwait () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#4  0x00007ffff5963a8e in QWaitCondition::wait(QMutex*, QDeadlineTimer) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#5  0x00007ffff58ac342 in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#6  0x00007ffff595ba5e in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#7  0x00007ffff7d02b7b in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#8  0x00007ffff7d807f8 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+
+Thread 4 (Thread 0x7fffea42b6c0 (LWP 211813) "Thread (pooled)"):
+#0  0x00007ffff7d0a9ee in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#1  0x00007ffff7cff668 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#2  0x00007ffff7cffc8c in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#3  0x00007ffff7d0231d in pthread_cond_timedwait () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#4  0x00007ffff5963a8e in QWaitCondition::wait(QMutex*, QDeadlineTimer) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#5  0x00007ffff58ac342 in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#6  0x00007ffff595ba5e in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#7  0x00007ffff7d02b7b in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#8  0x00007ffff7d807f8 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+
+Thread 3 (Thread 0x7ffff093e6c0 (LWP 211812) "QXcbEventQueue"):
+#0  0x00007ffff7d0a9ee in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#1  0x00007ffff7cff668 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#2  0x00007ffff7cff6ad in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#3  0x00007ffff7d73a06 in poll () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#4  0x00007ffff5d48d82 in ?? () from /lib/x86_64-linux-gnu/libxcb.so.1
+No symbol table info available.
+#5  0x00007ffff5d4ae1a in xcb_wait_for_event () from /lib/x86_64-linux-gnu/libxcb.so.1
+No symbol table info available.
+#6  0x00007ffff119ef77 in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/plugins/platforms/../../lib/libQt6XcbQpa.so.6
+No symbol table info available.
+#7  0x00007ffff595ba5e in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#8  0x00007ffff7d02b7b in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#9  0x00007ffff7d807f8 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+
+Thread 2 (Thread 0x7ffff113f6c0 (LWP 211811) "QDBusConnection"):
+#0  0x00007ffff7d0a9ee in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#1  0x00007ffff7cff668 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#2  0x00007ffff7cff6ad in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#3  0x00007ffff7d73eae in ppoll () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#4  0x00007ffff53bd6cc in ?? () from /lib/x86_64-linux-gnu/libglib-2.0.so.0
+No symbol table info available.
+#5  0x00007ffff53bdd60 in g_main_context_iteration () from /lib/x86_64-linux-gnu/libglib-2.0.so.0
+No symbol table info available.
+#6  0x00007ffff5a9869e in QEventDispatcherGlib::processEvents(QFlags<QEventLoop::ProcessEventsFlag>) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#7  0x00007ffff57980fb in QEventLoop::exec(QFlags<QEventLoop::ProcessEventsFlag>) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#8  0x00007ffff58a8493 in QThread::exec() () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#9  0x00007ffff52c479e in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6DBus.so.6
+No symbol table info available.
+#10 0x00007ffff595ba5e in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#11 0x00007ffff7d02b7b in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#12 0x00007ffff7d807f8 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+
+Thread 1 (Thread 0x7ffff7c6b780 (LWP 211808) "python"):
+#0  0x00007ffff17dd255 in QWidget::testAttribute_helper(Qt::WidgetAttribute) const () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Widgets.so.6
+No symbol table info available.
+#1  0x00007ffff17eb218 in QWidget::setAttribute(Qt::WidgetAttribute, bool) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Widgets.so.6
+No symbol table info available.
+#2  0x00007ffff179e867 in QApplication::notify(QObject*, QEvent*) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Widgets.so.6
+No symbol table info available.
+#3  0x00007ffff223ae05 in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/QtWidgets.abi3.so
+No symbol table info available.
+#4  0x00007ffff578c180 in QCoreApplication::notifyInternal2(QObject*, QEvent*) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#5  0x00007ffff179d1f7 in QApplicationPrivate::sendMouseEvent(QWidget*, QMouseEvent*, QWidget*, QWidget*, QWidget**, QPointer<QWidget>&, bool, bool) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Widgets.so.6
+No symbol table info available.
+#6  0x00007ffff180d32f in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Widgets.so.6
+No symbol table info available.
+#7  0x00007ffff180fbc8 in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Widgets.so.6
+No symbol table info available.
+#8  0x00007ffff179565b in QApplicationPrivate::notify_helper(QObject*, QEvent*) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Widgets.so.6
+No symbol table info available.
+#9  0x00007ffff223ae05 in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/QtWidgets.abi3.so
+No symbol table info available.
+#10 0x00007ffff578c180 in QCoreApplication::notifyInternal2(QObject*, QEvent*) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#11 0x00007ffff5ffaa60 in QGuiApplicationPrivate::processMouseEvent(QWindowSystemInterfacePrivate::MouseEvent*) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Gui.so.6
+No symbol table info available.
+#12 0x00007ffff6064d1c in QWindowSystemInterface::sendWindowSystemEvents(QFlags<QEventLoop::ProcessEventsFlag>) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Gui.so.6
+No symbol table info available.
+#13 0x00007ffff119e49e in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/plugins/platforms/../../lib/libQt6XcbQpa.so.6
+No symbol table info available.
+#14 0x00007ffff53bb3c5 in ?? () from /lib/x86_64-linux-gnu/libglib-2.0.so.0
+No symbol table info available.
+#15 0x00007ffff53bd5f7 in ?? () from /lib/x86_64-linux-gnu/libglib-2.0.so.0
+No symbol table info available.
+#16 0x00007ffff53bdd60 in g_main_context_iteration () from /lib/x86_64-linux-gnu/libglib-2.0.so.0
+No symbol table info available.
+#17 0x00007ffff5a9869e in QEventDispatcherGlib::processEvents(QFlags<QEventLoop::ProcessEventsFlag>) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#18 0x00007ffff57980fb in QEventLoop::exec(QFlags<QEventLoop::ProcessEventsFlag>) () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#19 0x00007ffff5793bba in QCoreApplication::exec() () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/Qt/lib/libQt6Core.so.6
+No symbol table info available.
+#20 0x00007ffff2201225 in ?? () from /home/szaboger/Projects/Szoftvertervezo/venv/lib/python3.13/site-packages/PySide6/QtWidgets.abi3.so
+No symbol table info available.
+#21 0x000000000054b634 in ?? ()
+No symbol table info available.
+#22 0x000000000054a552 in PyObject_Vectorcall ()
+No symbol table info available.
+#23 0x000000000056139b in _PyEval_EvalFrameDefault ()
+No symbol table info available.
+#24 0x000000000055abdc in PyEval_EvalCode ()
+No symbol table info available.
+#25 0x00000000006a3d61 in ?? ()
+No symbol table info available.
+#26 0x00000000006a0dbc in ?? ()
+No symbol table info available.
+#27 0x00000000006b1f13 in ?? ()
+No symbol table info available.
+#28 0x00000000006b1923 in ?? ()
+No symbol table info available.
+#29 0x00000000006b175e in ?? ()
+No symbol table info available.
+#30 0x00000000006b0c41 in Py_RunMain ()
+No symbol table info available.
+#31 0x000000000067bd2b in Py_BytesMain ()
+No symbol table info available.
+#32 0x00007ffff7c99ca8 in ?? () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#33 0x00007ffff7c99d65 in __libc_start_main () from /lib/x86_64-linux-gnu/libc.so.6
+No symbol table info available.
+#34 0x000000000067b0f1 in _start ()
+No symbol table info available.

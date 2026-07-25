@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QAction, QKeySequence, QIcon
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import (
     QDialog,
     QLabel,
@@ -15,28 +15,28 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from ..core.storage import Storage
-from ..core.workspace import Workspace
-from .flow_layout import FlowLayout
-from .new_project_dialog import NewProjectDialog
-from .project_dialog import ProjectDialog, ProjectDetailsWidget
-from .widgets import ProjectCard
 
 from config import (
-    ICON_PATH,
     APP_VERSION,
     BUILD_CHANNEL,
+    ICON_PATH,
 )
-from .about_dialog import AboutDialog
-
 from settings.settings import (
-    SettingsDialog, 
+    SettingsDialog,
     get_project_view_mode,
     get_splitter_sizes,
     save_splitter_sizes,
-    load_settings,
 )
-from settings.translations import tr, language_signal
+from settings.translations import language_signal, tr
+from tervezo.ui.log_dialog import LogDialog
+
+from ..core.storage import Storage
+from ..core.workspace import Workspace
+from .about_dialog import AboutDialog
+from .flow_layout import FlowLayout
+from .new_project_dialog import NewProjectDialog
+from .project_dialog import ProjectDetailsWidget, ProjectDialog
+from .widgets import ProjectCard
 
 
 class MainWindow(QMainWindow):
@@ -54,6 +54,7 @@ class MainWindow(QMainWindow):
         self._build_menu()
         self._build_toolbar()
         self.retranslate_ui()
+        self._log_dialog: LogDialog | None = None
 
         self._apply_view_mode_visibility()
 
@@ -180,7 +181,15 @@ class MainWindow(QMainWindow):
 
 
 
+        # ---------- Eszközök menü ----------
+        self.tools_menu = menu_bar.addMenu("")  # a szöveget retranslate_ui() hívja majd
 
+        self.log_action = QAction(QIcon.fromTheme("utilities-log-viewer"), "", self)
+        self.log_action.triggered.connect(self.open_log_dialog)
+        self.tools_menu.addAction(self.log_action)
+
+
+        
 
 
         # ---------- Súgó menü  ----------
@@ -193,6 +202,26 @@ class MainWindow(QMainWindow):
         self.about_action = QAction(QIcon.fromTheme("help-about"), "", self)
         self.about_action.triggered.connect(self.open_about)
         self.help_menu.addAction(self.about_action)
+
+
+
+
+    def open_log_dialog(self) -> None:
+        if self._log_dialog is None:
+            self._log_dialog = LogDialog(self)
+            self._log_dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+            self._log_dialog.destroyed.connect(self._on_log_dialog_closed)
+
+        self._log_dialog.show()
+        self._log_dialog.raise_()
+        self._log_dialog.activateWindow()
+
+    def _on_log_dialog_closed(self) -> None:
+        self._log_dialog = None
+
+
+
+
 
 
     def open_settings(self) -> None:
@@ -253,6 +282,8 @@ class MainWindow(QMainWindow):
 
         self.toolbar.setWindowTitle(tr("main.toolbar.name"))
         self.act_new_project_toolbar.setText(tr("main.action.new_project_toolbar"))
+        self.tools_menu.setTitle(tr("main.menu.tools"))
+        self.log_action.setText(tr("main.action.open_log"))
         self.about_action.setText(tr("main.action.about"))
 
         self.help_menu.setTitle(tr("main.menu.help"))
@@ -333,3 +364,4 @@ class MainWindow(QMainWindow):
             return
 
         self.reload_cards()
+

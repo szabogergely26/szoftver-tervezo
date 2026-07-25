@@ -56,7 +56,7 @@ class Milestone:
         return {"date": self.date, "title": self.title, "description": self.description}
 
     @staticmethod
-    def from_dict(data: dict) -> "Milestone":
+    def from_dict(data: dict) -> Milestone:
         return Milestone(
             date=data.get("date", ""),
             title=data.get("title", ""),
@@ -89,7 +89,7 @@ class TaskItem:
         return {"id": self.id, "html": self.html, "status": self.status.value}
 
     @staticmethod
-    def from_dict(data: dict) -> "TaskItem":
+    def from_dict(data: dict) -> TaskItem:
         # Visszafelé kompatibilitás: a régi mentések 'done': bool mezőt
         # tartalmaznak, státusz mező helyett.
         if "status" in data:
@@ -133,7 +133,7 @@ class Project:
         }
 
     @staticmethod
-    def from_dict(path: Path, data: dict) -> "Project":
+    def from_dict(path: Path, data: dict) -> Project:
         return Project(
             path=path,
             name=data.get("name", path.name),

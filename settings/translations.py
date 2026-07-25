@@ -75,7 +75,7 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "common.date_placeholder": {"hu": "ÉÉÉÉ.HH.NN", "en": "YYYY.MM.DD"},
     "common.exists_title": {"hu": "Létezik", "en": "Already exists"},
 
-    # --- Főablak ---
+    # ----------- Főablak ---------------
     "main.window_title": {"hu": "Tervező", "en": "Designer"},
     "main.menu.file": {"hu": "Fájl", "en": "File"},
     "main.menu.help": {"hu": "Súgó", "en": "Help"},
@@ -97,6 +97,13 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "hu": "Válassz egy projektet a bal oldali listából.",
         "en": "Select a project from the list on the left.",
     },
+
+
+
+
+    "main.menu.tools": {"hu": "Eszközök", "en": "Tools"},
+    "main.action.open_log": {"hu": "Napló megnyitása…", "en": "Open log…"},
+
 
 
     # --- Névjegy ---
@@ -236,3 +243,7 @@ def tr(key: str, **kwargs: str) -> str:
         except (KeyError, IndexError):
             return text
     return text
+
+
+
+    

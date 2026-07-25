@@ -2,28 +2,28 @@
 
 from __future__ import annotations
 
+import json
+import logging
+
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
+    QComboBox,
     QDialog,
     QDialogButtonBox,
+    QFormLayout,
     QHBoxLayout,
     QLabel,
+    QStackedWidget,
     QTreeWidget,
     QTreeWidgetItem,
-    QStackedWidget,
     QVBoxLayout,
     QWidget,
-    QComboBox,
-    QFormLayout,
-    QPushButton,
-    QCheckBox,
 )
-from PySide6.QtGui import QIcon
-from PySide6.QtCore import Qt, Signal
 
-
-import json
 from config import ICON_PATH, SETTINGS_FILE
-from .translations import tr, set_language, get_language
+
+from .translations import get_language, set_language, tr
 
 
 def load_settings() -> dict:
@@ -74,6 +74,28 @@ def save_splitter_sizes(sizes: list[int]) -> None:
 
 
 
+
+# (név, logging szint, szín) - ez a sorrend jelenik meg a legördülőkben
+LOG_LEVELS = [
+    ("DEBUG", logging.DEBUG, "#8a8a8a"),
+    ("INFO", logging.INFO, "#3fa7ff"),
+    ("WARNING", logging.WARNING, "#e0a020"),
+    ("ERROR", logging.ERROR, "#e05050"),
+    ("CRITICAL", logging.CRITICAL, "#ff2020"),
+]
+
+
+def get_log_level_name() -> str:
+    """Visszaadja a mentett naplózási szint NEVÉT (pl. 'INFO'), alapból 'INFO'."""
+    data = load_settings()
+    name = data.get("log_level")
+    valid_names = {n for n, _v, _c in LOG_LEVELS}
+    return name if name in valid_names else "INFO"
+
+
+def get_log_level() -> int:
+    """Visszaadja a mentett naplózási szintet numerikusan (logging.DEBUG stb.)."""
+    return logging.getLevelName(get_log_level_name())
 
 
 class SettingsDialog(QDialog):
