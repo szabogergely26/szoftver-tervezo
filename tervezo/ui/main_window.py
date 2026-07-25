@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QAction, QIcon
+from PySide6.QtGui import QAction, QKeySequence, QIcon
 from PySide6.QtWidgets import (
     QDialog,
     QLabel,
@@ -16,27 +16,25 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from config import (
-    APP_VERSION,
-    BUILD_CHANNEL,
-    ICON_PATH,
-)
+from ..core.storage import Storage
+from ..core.workspace import Workspace
+from .flow_layout import FlowLayout
+from .new_project_dialog import NewProjectDialog
+from .project_dialog import ProjectDialog, ProjectDetailsWidget
+from .widgets import ProjectCard
+
+from config import ICON_PATH
+
 from settings.settings import (
-    SettingsDialog,
+    SettingsDialog, 
     get_project_view_mode,
     get_splitter_sizes,
     save_splitter_sizes,
+    load_settings,
+    save_settings,
 )
-from settings.translations import language_signal, tr
-from tervezo.ui.log_dialog import LogDialog
 
-from ..core.storage import Storage
-from ..core.workspace import Workspace
-from .about_dialog import AboutDialog
-from .flow_layout import FlowLayout
-from .new_project_dialog import NewProjectDialog
-from .project_dialog import ProjectDetailsWidget, ProjectDialog
-from .widgets import ProjectCard
+from settings.translations import tr, language_signal
 
 
 class MainWindow(QMainWindow):
@@ -54,18 +52,12 @@ class MainWindow(QMainWindow):
         self._build_menu()
         self._build_toolbar()
         self.retranslate_ui()
-        self._log_dialog: LogDialog | None = None
 
         self._apply_view_mode_visibility()
 
         self.reload_cards()
 
-
         language_signal.changed.connect(self._on_language_changed)
-
-
-
-
 
     # ---------- UI ----------
     def _build_ui(self) -> None:
@@ -105,8 +97,6 @@ class MainWindow(QMainWindow):
     def _reset_sidebar_placeholder(self) -> None:
         while self.details_layout.count():
             item = self.details_layout.takeAt(0)
-            if item is None:
-                continue
             w = item.widget()
             if w:
                 w.deleteLater()
@@ -140,89 +130,27 @@ class MainWindow(QMainWindow):
 
     # ---------- Menü ----------
     def _build_menu(self):
+        self.file_menu = self.menuBar().addMenu("")
 
-        # Menüsáv létrehozása
-        menu_bar = self.menuBar()
-
-
-
-        # -- Fájl menü
-        # a "Fájl" menü elrejtése, ha nincs benne semmi, retranslate_ui() hívja majd a szöveget
-        self.file_menu = menu_bar.addMenu("")
-
-        # Menüpontok létrehozása és hozzáadása a Fájl menühöz
-        # Új projekt
         self.new_project_action = QAction(QIcon.fromTheme("document-new"), "", self)
         self.new_project_action.triggered.connect(self.new_project)
         self.file_menu.addAction(self.new_project_action)
 
-        # Megnyitás
         self.open_action = QAction(QIcon.fromTheme("document-open"), "", self)
         self.file_menu.addAction(self.open_action)
 
-        # Mentés
         self.save_action = QAction(QIcon.fromTheme("document-save"), "", self)
         self.file_menu.addAction(self.save_action)
 
         self.file_menu.addSeparator()
 
-        # Beállítások
         self.settings_action = QAction(QIcon.fromTheme("preferences-system"), "", self)
         self.settings_action.triggered.connect(self.open_settings)
         self.file_menu.addAction(self.settings_action)
 
-
-        self.file_menu.addSeparator()
-
-        # Kilépés
         self.quit_action = QAction(QIcon.fromTheme("application-exit"), "", self)
         self.quit_action.triggered.connect(self.close)
         self.file_menu.addAction(self.quit_action)
-
-
-
-        # ---------- Eszközök menü ----------
-        self.tools_menu = menu_bar.addMenu("")  # a szöveget retranslate_ui() hívja majd
-
-        self.log_action = QAction(QIcon.fromTheme("utilities-log-viewer"), "", self)
-        self.log_action.triggered.connect(self.open_log_dialog)
-        self.tools_menu.addAction(self.log_action)
-
-
-        
-
-
-        # ---------- Súgó menü  ----------
-        # Súgó menü létrehozása
-        self.help_menu = menu_bar.addMenu("")  # a szöveget retranslate_ui() hívja majd
-
-        # Menü feltöltése
-
-        # Névjegy
-        self.about_action = QAction(QIcon.fromTheme("help-about"), "", self)
-        self.about_action.triggered.connect(self.open_about)
-        self.help_menu.addAction(self.about_action)
-
-
-
-
-    def open_log_dialog(self) -> None:
-        if self._log_dialog is None:
-            self._log_dialog = LogDialog(self)
-            self._log_dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
-            self._log_dialog.destroyed.connect(self._on_log_dialog_closed)
-
-        self._log_dialog.show()
-        self._log_dialog.raise_()
-        self._log_dialog.activateWindow()
-
-    def _on_log_dialog_closed(self) -> None:
-        self._log_dialog = None
-
-
-
-
-
 
     def open_settings(self) -> None:
         dialog = SettingsDialog(self)
@@ -233,13 +161,6 @@ class MainWindow(QMainWindow):
 
             self._reset_sidebar_placeholder()
             self._apply_view_mode_visibility()
-
-
-    def open_about(self) -> None:
-        dialog = AboutDialog(self)
-        dialog.exec()
-
-
 
     def _build_toolbar(self) -> None:
         self.toolbar = QToolBar("", self)
@@ -259,19 +180,8 @@ class MainWindow(QMainWindow):
         self.retranslate_ui()
         self.reload_cards()
 
-
-
-    def _build_window_title(self) -> str:
-        base = tr("main.window_title")
-        if BUILD_CHANNEL == "dev":
-            return f"{base} - DEV - v{APP_VERSION}"
-        if BUILD_CHANNEL == "preview":
-            return f"{base} - Preview - v{APP_VERSION}"
-        return base
-
-
     def retranslate_ui(self) -> None:
-        self.setWindowTitle(self._build_window_title())
+        self.setWindowTitle(tr("main.window_title"))
 
         self.file_menu.setTitle(tr("main.menu.file"))
         self.new_project_action.setText(tr("main.action.new_project"))
@@ -282,13 +192,6 @@ class MainWindow(QMainWindow):
 
         self.toolbar.setWindowTitle(tr("main.toolbar.name"))
         self.act_new_project_toolbar.setText(tr("main.action.new_project_toolbar"))
-        self.tools_menu.setTitle(tr("main.menu.tools"))
-        self.log_action.setText(tr("main.action.open_log"))
-        self.about_action.setText(tr("main.action.about"))
-
-        self.help_menu.setTitle(tr("main.menu.help"))
-
-
 
     # ---------- Kártyák ----------
     def reload_cards(self) -> None:
@@ -301,7 +204,16 @@ class MainWindow(QMainWindow):
         for project_dir in self.storage.list_projects(self.ws.projects_dir):
             project = self.storage.read_project(project_dir)
             card = ProjectCard(project)
-            card.clicked.connect(self.open_project)
+            # A projektablak modális eseményciklust indít. Ha közvetlenül a
+            # kártya egéreseményéből nyitnánk meg, a Mentés közben futó
+            # reload_cards() deleteLater()-rel törölhetné azt a kártyát,
+            # amelynek natív egéreseménye még nem ért véget. A sorba állított
+            # kapcsolat csak az aktuális egéresemény teljes lefutása után
+            # hívja meg az open_project metódust.
+            card.clicked.connect(
+                self.open_project,
+                Qt.ConnectionType.QueuedConnection,
+            )
             self.flow_layout.addWidget(card)
 
     def open_project(self, project_dir: Path) -> None:
@@ -319,8 +231,6 @@ class MainWindow(QMainWindow):
     def _open_project_in_sidebar(self, project_dir: Path) -> None:
         while self.details_layout.count():
             item = self.details_layout.takeAt(0)
-            if item is None:
-                continue
             w = item.widget()
             if w:
                 w.deleteLater()
@@ -364,4 +274,3 @@ class MainWindow(QMainWindow):
             return
 
         self.reload_cards()
-
