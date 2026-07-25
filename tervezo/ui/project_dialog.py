@@ -3,11 +3,15 @@ from __future__ import annotations
 from pathlib import Path
 
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QPixmap
+
 from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
+    QFileDialog,
     QFormLayout,
     QHBoxLayout,
+    QLabel,
     QLineEdit,
     QListWidget,
     QListWidgetItem,
@@ -24,6 +28,10 @@ from ..core.models import ProjectStatus, TaskItem, TaskStatus
 from ..core.storage import Storage
 from .widgets import MilestoneDialog, TaskEditDialog, TaskRowWidget, build_richtext_toolbar
 from settings.translations import tr
+from config import ASSETS_DIR
+
+
+
 
 
 class ProjectDetailsWidget(QWidget):
@@ -50,7 +58,10 @@ class ProjectDetailsWidget(QWidget):
         self.storage = storage
         self.project = storage.read_project(project_dir)
         self.tasks: list[TaskItem] = storage.read_tasks(project_dir)
+
         self._deleted = False
+        self._pending_cover_path: Path | None = None
+        self._pending_cover_removed = False
 
         layout = QVBoxLayout(self)
 
@@ -82,6 +93,33 @@ class ProjectDetailsWidget(QWidget):
     def _build_overview_tab(self) -> None:
         tab = QWidget()
         form = QFormLayout(tab)
+
+        # --- Borítókép ---
+        cover_row = QHBoxLayout()
+        self.cover_preview = QLabel()
+        self.cover_preview.setFixedSize(120, 90)
+        self.cover_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.cover_preview.setStyleSheet("border: 1px solid #999; background: #222; color: #888;")
+        cover_row.addWidget(self.cover_preview)
+
+        cover_buttons = QVBoxLayout()
+        choose_cover_btn = QPushButton("Borítókép választása…")
+        choose_cover_btn.clicked.connect(self._on_choose_cover)
+        cover_buttons.addWidget(choose_cover_btn)
+
+        remove_cover_btn = QPushButton(tr("common.delete"))
+        remove_cover_btn.clicked.connect(self._on_remove_cover)
+        cover_buttons.addWidget(remove_cover_btn)
+        cover_buttons.addStretch(1)
+
+        cover_row.addLayout(cover_buttons)
+        cover_row.addStretch(1)
+        form.addRow("Borítókép", cover_row)
+
+        self._reload_cover_preview()
+
+
+
 
         self.purpose_edit = QPlainTextEdit(self.project.purpose)
         self.purpose_edit.setFixedHeight(100)
@@ -120,6 +158,68 @@ class ProjectDetailsWidget(QWidget):
         form.addRow("", ms_buttons)
 
         self.tabs.addTab(tab, tr("project.tab.overview"))
+
+
+
+    def _reload_cover_preview(self, override_path: Path | str | None = None) -> None:
+        path = override_path or self.project.photo_path
+        if path and Path(path).exists():
+            pixmap = QPixmap(str(path))
+            if not pixmap.isNull():
+                self.cover_preview.setPixmap(
+                    pixmap.scaled(
+                        self.cover_preview.width(),
+                        self.cover_preview.height(),
+                        Qt.AspectRatioMode.KeepAspectRatio,
+                        Qt.TransformationMode.SmoothTransformation,
+                    )
+                )
+                return
+        self.cover_preview.setPixmap(QPixmap())
+        self.cover_preview.setText("Nincs borítókép")
+
+
+    
+   
+
+
+    def _on_choose_cover(self) -> None:
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Borítókép választása",
+            "",
+            "Képek (*.png *.jpg *.jpeg *.bmp *.webp)",
+        )
+        if not file_path:
+            return
+
+        chosen = Path(file_path).resolve()
+        assets_dir = (self.project.path / ASSETS_DIR).resolve()
+
+        try:
+            chosen.relative_to(assets_dir)
+            already_in_assets = True
+        except ValueError:
+            already_in_assets = False
+
+        if already_in_assets:
+            # Már a projekt assets mappájában van -> nem másolunk, kérdés nélkül használjuk.
+            self._pending_cover_path = None
+            self._pending_cover_removed = False
+            self.project.photo = f"{ASSETS_DIR}/{chosen.name}"
+        else:
+            # Külső fájl -> mentéskor bemásoljuk az assets mappába.
+            self._pending_cover_path = chosen
+            self._pending_cover_removed = False
+
+        self._reload_cover_preview(override_path=chosen)
+
+    def _on_remove_cover(self) -> None:
+        self._pending_cover_path = None
+        self._pending_cover_removed = True
+        self.project.photo = None
+        self._reload_cover_preview()
+
 
     def _reload_milestones(self) -> None:
         self.milestone_list.clear()
@@ -276,9 +376,20 @@ class ProjectDetailsWidget(QWidget):
 
     def _on_save(self) -> None:
         self._collect_project_from_form()
+
+        if self._pending_cover_path is not None:
+            rel_path = self.storage.set_project_cover(self.project.path, self._pending_cover_path)
+            self.project.photo = rel_path
+        elif self._pending_cover_removed:
+            self.storage.remove_project_cover(self.project.path)
+            self.project.photo = None
+
         self.storage.write_project(self.project)
         self.storage.write_journal(self.project.path, self.journal_editor.toHtml())
         self.storage.write_tasks(self.project.path, self.tasks)
+
+        self._pending_cover_path = None
+        self._pending_cover_removed = False
         self.project_changed.emit()
 
     def _on_delete(self) -> None:

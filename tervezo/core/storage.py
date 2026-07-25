@@ -23,10 +23,27 @@ class Storage:
     def read_project(self, project_dir: Path) -> Project:
         f = project_dir / PROJECT_FILE
         if not f.exists():
-            # Visszafelé-kompatibilitás: régi projekt-mappa project.json nélkül
-            return Project(path=project_dir, name=project_dir.name)
-        data = json.loads(f.read_text(encoding="utf-8"))
-        return Project.from_dict(project_dir, data)
+            project = Project(path=project_dir, name=project_dir.name)
+        else:
+            data = json.loads(f.read_text(encoding="utf-8"))
+            project = Project.from_dict(project_dir, data)
+
+        if not project.photo:
+            project.photo = self._detect_existing_cover(project_dir)
+
+        return project
+
+    def _detect_existing_cover(self, project_dir: Path) -> str | None:
+        """Ha nincs project.photo beállítva, de van cover.* fájl az assets
+        mappában (pl. kézzel odamásolt kép), azt automatikusan felismeri.
+        """
+        assets_dir = project_dir / ASSETS_DIR
+        if not assets_dir.exists():
+            return None
+        matches = sorted(assets_dir.glob("cover.*"))
+        if matches:
+            return f"{ASSETS_DIR}/{matches[0].name}"
+        return None
 
     def write_project(self, project: Project) -> None:
         f = project.path / PROJECT_FILE
@@ -86,6 +103,28 @@ class Storage:
         target = assets_dir / f"cover{photo_source.suffix.lower()}"
         shutil.copy2(photo_source, target)
         return f"{ASSETS_DIR}/{target.name}"
+
+
+    def set_project_cover(self, project_dir: Path, photo_source: Path) -> str:
+        """Külső képfájl bemásolása a projekt assets mappájába (borítókép).
+
+        Ha már létezik korábbi cover.* fájl, azt előtte eltávolítja.
+        """
+        assets_dir = project_dir / ASSETS_DIR
+        assets_dir.mkdir(exist_ok=True)
+        for old in assets_dir.glob("cover.*"):
+            old.unlink()
+        return self._copy_photo(project_dir, photo_source)
+
+    def remove_project_cover(self, project_dir: Path) -> None:
+        """Meglévő cover.* fájl törlése az assets mappából."""
+        assets_dir = project_dir / ASSETS_DIR
+        if assets_dir.exists():
+            for old in assets_dir.glob("cover.*"):
+                old.unlink()
+
+
+    
 
     def delete_project(self, project_dir: Path) -> None:
         """Teljes projekt-mappa törlése. A megerősítést a UI-nak kell kérnie előtte."""
