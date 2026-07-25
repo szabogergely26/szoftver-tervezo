@@ -7,6 +7,9 @@ from config import ICON_PATH
 from settings import apply_saved_language
 from tervezo.ui.main_window import MainWindow
 
+import faulthandler
+faulthandler.enable()
+
 
 def main() -> int:
     app = QApplication(sys.argv)
