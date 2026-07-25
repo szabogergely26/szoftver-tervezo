@@ -1,0 +1,490 @@
+diff --git a/main.py b/main.py
+index 973c04d..d676196 100644
+--- a/main.py
++++ b/main.py
+@@ -1,25 +1,62 @@
++import faulthandler
++import os
+ import sys
+ 
++# A rendszer KDE platform-téma pluginja (pl. KDEPlasmaPlatformTheme6.so) a
++# disztribúció Qt6 verziójához készült, ami eltérhet a PySide6 csomagba
++# ágyazott Qt6 futtatókörnyezet verziójától. A kettő közötti ABI-eltérés
++# natív szegmentálási hibát okoz induláskor, ezért letiltjuk a rendszer
++# platform-téma integrációját, mielőtt a QApplication létrejönne.
++os.environ.setdefault("QT_QPA_PLATFORMTHEME", "")
++
+ from PySide6.QtGui import QIcon
+ from PySide6.QtWidgets import QApplication
+ 
+-from config import ICON_PATH
++from config import APP_VERSION, BUILD_CHANNEL, ICON_PATH
+ from settings import apply_saved_language
+ from tervezo.ui.main_window import MainWindow
+ 
+-import faulthandler
+ faulthandler.enable()
+ 
+ 
++from settings.settings import get_log_level
++from tervezo.core.app_logging import (
++    LOG_FILE,
++    log_header,
++    log_raw,
++    logging,
++    setup_logging,
++)
++
++crash_log_path = LOG_FILE.parent / "crash.log"
++faulthandler.enable(file=open(crash_log_path, "a"))
++
++setup_logging(get_log_level())
++
++SEPARATOR = "=" * 120
++
++
++log_raw(SEPARATOR)
++log_header("Tervező - alkalmazás indul")
++log_raw(f"log file: {LOG_FILE}")
++log_raw(SEPARATOR)
++logging.info(f"Build channel: {BUILD_CHANNEL}")
++logging.info(f"Verzió: {APP_VERSION}")
++
+ def main() -> int:
+     app = QApplication(sys.argv)
++    logging.info("QApplication létrejött")
+     app.setWindowIcon(QIcon(str(ICON_PATH)))  # ez adja a tálca-/taskbar-ikont
+-
++    logging.info("Nyelv alkalmazva, MainWindow létrehozása előtt")
+     
+     apply_saved_language()
+ 
++    
++
+     win = MainWindow()
++    logging.info("MainWindow létrejött, show() hívás előtt")
+     win.show()
++    logging.info("show() hívás megtörtént, eseményhurok indul")
+     return app.exec()
+ 
+ 
+diff --git a/settings/settings.py b/settings/settings.py
+index 6de81f3..b063b4a 100644
+--- a/settings/settings.py
++++ b/settings/settings.py
+@@ -2,28 +2,28 @@
+ 
+ from __future__ import annotations
+ 
++import json
++import logging
++
++from PySide6.QtCore import Qt
++from PySide6.QtGui import QIcon
+ from PySide6.QtWidgets import (
++    QComboBox,
+     QDialog,
+     QDialogButtonBox,
++    QFormLayout,
+     QHBoxLayout,
+     QLabel,
++    QStackedWidget,
+     QTreeWidget,
+     QTreeWidgetItem,
+-    QStackedWidget,
+     QVBoxLayout,
+     QWidget,
+-    QComboBox,
+-    QFormLayout,
+-    QPushButton,
+-    QCheckBox,
+ )
+-from PySide6.QtGui import QIcon
+-from PySide6.QtCore import Qt, Signal
+ 
+-
+-import json
+ from config import ICON_PATH, SETTINGS_FILE
+-from .translations import tr, set_language, get_language
++
++from .translations import get_language, set_language, tr
+ 
+ 
+ def load_settings() -> dict:
+@@ -75,6 +75,28 @@ def save_splitter_sizes(sizes: list[int]) -> None:
+ 
+ 
+ 
++# (név, logging szint, szín) - ez a sorrend jelenik meg a legördülőkben
++LOG_LEVELS = [
++    ("DEBUG", logging.DEBUG, "#8a8a8a"),
++    ("INFO", logging.INFO, "#3fa7ff"),
++    ("WARNING", logging.WARNING, "#e0a020"),
++    ("ERROR", logging.ERROR, "#e05050"),
++    ("CRITICAL", logging.CRITICAL, "#ff2020"),
++]
++
++
++def get_log_level_name() -> str:
++    """Visszaadja a mentett naplózási szint NEVÉT (pl. 'INFO'), alapból 'INFO'."""
++    data = load_settings()
++    name = data.get("log_level")
++    valid_names = {n for n, _v, _c in LOG_LEVELS}
++    return name if name in valid_names else "INFO"
++
++
++def get_log_level() -> int:
++    """Visszaadja a mentett naplózási szintet numerikusan (logging.DEBUG stb.)."""
++    return logging.getLevelName(get_log_level_name())
++
+ 
+ class SettingsDialog(QDialog):
+     """Az alkalmazás beállítás ablaka."""
+diff --git a/settings/translations.py b/settings/translations.py
+index 4425687..0a03865 100644
+--- a/settings/translations.py
++++ b/settings/translations.py
+@@ -75,7 +75,7 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
+     "common.date_placeholder": {"hu": "ÉÉÉÉ.HH.NN", "en": "YYYY.MM.DD"},
+     "common.exists_title": {"hu": "Létezik", "en": "Already exists"},
+ 
+-    # --- Főablak ---
++    # ----------- Főablak ---------------
+     "main.window_title": {"hu": "Tervező", "en": "Designer"},
+     "main.menu.file": {"hu": "Fájl", "en": "File"},
+     "main.menu.help": {"hu": "Súgó", "en": "Help"},
+@@ -99,6 +99,13 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
+     },
+ 
+ 
++
++
++    "main.menu.tools": {"hu": "Eszközök", "en": "Tools"},
++    "main.action.open_log": {"hu": "Napló megnyitása…", "en": "Open log…"},
++
++
++
+     # --- Névjegy ---
+     "about.title": {"hu": "Névjegy", "en": "About"},
+     "about.version": {"hu": "Verzió: {version}", "en": "Version: {version}"},
+@@ -235,4 +242,8 @@ def tr(key: str, **kwargs: str) -> str:
+             return text.format(**kwargs)
+         except (KeyError, IndexError):
+             return text
+-    return text
+\ No newline at end of file
++    return text
++
++
++
++    
+\ No newline at end of file
+diff --git a/tervezo/core/models.py b/tervezo/core/models.py
+index 1ca742c..344efb6 100644
+--- a/tervezo/core/models.py
++++ b/tervezo/core/models.py
+@@ -56,7 +56,7 @@ class Milestone:
+         return {"date": self.date, "title": self.title, "description": self.description}
+ 
+     @staticmethod
+-    def from_dict(data: dict) -> "Milestone":
++    def from_dict(data: dict) -> Milestone:
+         return Milestone(
+             date=data.get("date", ""),
+             title=data.get("title", ""),
+@@ -89,7 +89,7 @@ class TaskItem:
+         return {"id": self.id, "html": self.html, "status": self.status.value}
+ 
+     @staticmethod
+-    def from_dict(data: dict) -> "TaskItem":
++    def from_dict(data: dict) -> TaskItem:
+         # Visszafelé kompatibilitás: a régi mentések 'done': bool mezőt
+         # tartalmaznak, státusz mező helyett.
+         if "status" in data:
+@@ -133,7 +133,7 @@ class Project:
+         }
+ 
+     @staticmethod
+-    def from_dict(path: Path, data: dict) -> "Project":
++    def from_dict(path: Path, data: dict) -> Project:
+         return Project(
+             path=path,
+             name=data.get("name", path.name),
+diff --git a/tervezo/ui/main_window.py b/tervezo/ui/main_window.py
+index deaf51a..72f9c6b 100644
+--- a/tervezo/ui/main_window.py
++++ b/tervezo/ui/main_window.py
+@@ -3,7 +3,7 @@ from __future__ import annotations
+ from pathlib import Path
+ 
+ from PySide6.QtCore import Qt, QTimer
+-from PySide6.QtGui import QAction, QKeySequence, QIcon
++from PySide6.QtGui import QAction, QIcon
+ from PySide6.QtWidgets import (
+     QDialog,
+     QLabel,
+@@ -15,28 +15,28 @@ from PySide6.QtWidgets import (
+     QVBoxLayout,
+     QWidget,
+ )
+-from ..core.storage import Storage
+-from ..core.workspace import Workspace
+-from .flow_layout import FlowLayout
+-from .new_project_dialog import NewProjectDialog
+-from .project_dialog import ProjectDialog, ProjectDetailsWidget
+-from .widgets import ProjectCard
+ 
+ from config import (
+-    ICON_PATH,
+     APP_VERSION,
+     BUILD_CHANNEL,
++    ICON_PATH,
+ )
+-from .about_dialog import AboutDialog
+-
+ from settings.settings import (
+-    SettingsDialog, 
++    SettingsDialog,
+     get_project_view_mode,
+     get_splitter_sizes,
+     save_splitter_sizes,
+-    load_settings,
+ )
+-from settings.translations import tr, language_signal
++from settings.translations import language_signal, tr
++from tervezo.ui.log_dialog import LogDialog
++
++from ..core.storage import Storage
++from ..core.workspace import Workspace
++from .about_dialog import AboutDialog
++from .flow_layout import FlowLayout
++from .new_project_dialog import NewProjectDialog
++from .project_dialog import ProjectDetailsWidget, ProjectDialog
++from .widgets import ProjectCard
+ 
+ 
+ class MainWindow(QMainWindow):
+@@ -54,6 +54,7 @@ class MainWindow(QMainWindow):
+         self._build_menu()
+         self._build_toolbar()
+         self.retranslate_ui()
++        self._log_dialog: LogDialog | None = None
+ 
+         self._apply_view_mode_visibility()
+ 
+@@ -180,7 +181,15 @@ class MainWindow(QMainWindow):
+ 
+ 
+ 
++        # ---------- Eszközök menü ----------
++        self.tools_menu = menu_bar.addMenu("")  # a szöveget retranslate_ui() hívja majd
+ 
++        self.log_action = QAction(QIcon.fromTheme("utilities-log-viewer"), "", self)
++        self.log_action.triggered.connect(self.open_log_dialog)
++        self.tools_menu.addAction(self.log_action)
++
++
++        
+ 
+ 
+         # ---------- Súgó menü  ----------
+@@ -195,6 +204,26 @@ class MainWindow(QMainWindow):
+         self.help_menu.addAction(self.about_action)
+ 
+ 
++
++
++    def open_log_dialog(self) -> None:
++        if self._log_dialog is None:
++            self._log_dialog = LogDialog(self)
++            self._log_dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
++            self._log_dialog.destroyed.connect(self._on_log_dialog_closed)
++
++        self._log_dialog.show()
++        self._log_dialog.raise_()
++        self._log_dialog.activateWindow()
++
++    def _on_log_dialog_closed(self) -> None:
++        self._log_dialog = None
++
++
++
++
++
++
+     def open_settings(self) -> None:
+         dialog = SettingsDialog(self)
+         if dialog.exec() == QDialog.DialogCode.Accepted:
+@@ -253,6 +282,8 @@ class MainWindow(QMainWindow):
+ 
+         self.toolbar.setWindowTitle(tr("main.toolbar.name"))
+         self.act_new_project_toolbar.setText(tr("main.action.new_project_toolbar"))
++        self.tools_menu.setTitle(tr("main.menu.tools"))
++        self.log_action.setText(tr("main.action.open_log"))
+         self.about_action.setText(tr("main.action.about"))
+ 
+         self.help_menu.setTitle(tr("main.menu.help"))
+@@ -332,4 +363,5 @@ class MainWindow(QMainWindow):
+             )
+             return
+ 
+-        self.reload_cards()
+\ No newline at end of file
++        self.reload_cards()
++
+diff --git a/tervezo/ui/new_project_dialog.py b/tervezo/ui/new_project_dialog.py
+index ea07343..75b6300 100644
+--- a/tervezo/ui/new_project_dialog.py
++++ b/tervezo/ui/new_project_dialog.py
+@@ -2,6 +2,7 @@ from __future__ import annotations
+ 
+ from pathlib import Path
+ 
++from PySide6.QtCore import QTimer
+ from PySide6.QtWidgets import (
+     QDialog,
+     QDialogButtonBox,
+@@ -73,11 +74,21 @@ class NewProjectDialog(QDialog):
+         layout.addRow(buttons)
+ 
+     def _choose_photo(self) -> None:
++        # A dialógust csak a kattintás eseményének teljes lezárása UTÁN
++        # nyitjuk meg (singleShot(0, ...)): ha a modális fájlválasztót
++        # közvetlenül a "clicked" jelzésből, szinkron módon nyitjuk meg,
++        # a Qt belső "egér alatti widget" nyomkövetése inkonzisztens
++        # állapotba kerülhet a dialógus bezárásakor, ami natív
++        # szegmentálási hibát okoz (dangling widget-mutató).
++        QTimer.singleShot(0, self._open_photo_dialog)
++
++    def _open_photo_dialog(self) -> None:
+         path, _ = QFileDialog.getOpenFileName(
+             self,
+             tr("new_project.choose_photo_title"),
+             "",
+             tr("new_project.choose_photo_filter"),
++            options=QFileDialog.Option.DontUseNativeDialog,
+         )
+         if path:
+             self._photo_path = Path(path)
+diff --git a/tervezo/ui/project_dialog.py b/tervezo/ui/project_dialog.py
+index cc990bc..2dd7244 100644
+--- a/tervezo/ui/project_dialog.py
++++ b/tervezo/ui/project_dialog.py
+@@ -2,7 +2,7 @@ from __future__ import annotations
+ 
+ from pathlib import Path
+ 
+-from PySide6.QtCore import Qt, Signal
++from PySide6.QtCore import Qt, QTimer, Signal
+ from PySide6.QtGui import QPixmap
+ 
+ from PySide6.QtWidgets import (
+@@ -184,11 +184,21 @@ class ProjectDetailsWidget(QWidget):
+ 
+ 
+     def _on_choose_cover(self) -> None:
++        # A dialógust csak a kattintás eseményének teljes lezárása UTÁN
++        # nyitjuk meg (singleShot(0, ...)): ha a modális fájlválasztót
++        # közvetlenül a "clicked" jelzésből, szinkron módon nyitjuk meg,
++        # a Qt belső "egér alatti widget" nyomkövetése inkonzisztens
++        # állapotba kerülhet a dialógus bezárásakor, ami natív
++        # szegmentálási hibát okoz (dangling widget-mutató).
++        QTimer.singleShot(0, self._open_cover_dialog)
++
++    def _open_cover_dialog(self) -> None:
+         file_path, _ = QFileDialog.getOpenFileName(
+             self,
+             "Borítókép választása",
+             "",
+             "Képek (*.png *.jpg *.jpeg *.bmp *.webp)",
++            options=QFileDialog.Option.DontUseNativeDialog,
+         )
+         if not file_path:
+             return
+diff --git a/tervezo/ui/widgets.py b/tervezo/ui/widgets.py
+index 3955de8..3caf4e0 100644
+--- a/tervezo/ui/widgets.py
++++ b/tervezo/ui/widgets.py
+@@ -2,7 +2,7 @@ from __future__ import annotations
+ 
+ from datetime import date
+ 
+-from PySide6.QtCore import QSize, Qt, Signal
++from PySide6.QtCore import QSize, Qt, QTimer, Signal
+ from PySide6.QtGui import QAction, QBrush, QColor, QIcon, QPainter, QPixmap, QTextCharFormat
+ from PySide6.QtWidgets import (
+     QCheckBox,
+@@ -52,31 +52,26 @@ class ProjectCard(QFrame):
+         layout.setContentsMargins(8, 8, 8, 8)
+         layout.setSpacing(6)
+ 
+-        photo_label = QLabel()
+-        photo_label.setFixedHeight(PHOTO_HEIGHT)
+-        photo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+-        photo_label.setStyleSheet(
++        self.photo_label = QLabel()
++        self.photo_label.setFixedHeight(PHOTO_HEIGHT)
++        self.photo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
++        self.photo_label.setStyleSheet(
+             "background-color: rgba(127,127,127,40); border-radius: 4px;"
+         )
++        self.photo_label.setText("📁")
++        self.photo_label.setStyleSheet(
++            self.photo_label.styleSheet() + "font-size: 32px;"
++        )
++        layout.addWidget(self.photo_label)
+ 
+-        pixmap: QPixmap | None = None
+-        if project.photo_path and project.photo_path.exists():
+-            candidate = QPixmap(str(project.photo_path))
+-            if not candidate.isNull():
+-                pixmap = candidate
+-
+-        if pixmap is not None:
+-            photo_label.setPixmap(
+-                pixmap.scaledToHeight(
+-                    PHOTO_HEIGHT, Qt.TransformationMode.SmoothTransformation
+-                )
+-            )
+-        else:
+-            photo_label.setText("📁")
+-            photo_label.setStyleSheet(
+-                photo_label.styleSheet() + "font-size: 32px;"
+-            )
+-        layout.addWidget(photo_label)
++        # A borítókép betöltését (fájl-IO + dekódolás) a widget felépítése
++        # UTÁN, a következő eseményhurok-ciklusban végezzük el
++        # (singleShot(0, ...)): ha ez szinkron történik a kártya
++        # létrehozásakor - még mielőtt a kártya a szülő elrendezésbe
++        # kerülne és Qt lezárná a widget-hierarchia felépítését -, az
++        # ugyanabba a natív dangling-widget hibaosztályba tartozhat, mint
++        # amit a fájlválasztónál tapasztaltunk.
++        QTimer.singleShot(0, self._load_cover_photo)
+ 
+         header = QHBoxLayout()
+         name_label = QLabel(project.name)
+@@ -100,6 +95,24 @@ class ProjectCard(QFrame):
+         desc_label.setStyleSheet("font-size: 11px;")
+         layout.addWidget(desc_label, 1)
+ 
++    def _load_cover_photo(self) -> None:
++        pixmap: QPixmap | None = None
++        if self.project.photo_path and self.project.photo_path.exists():
++            candidate = QPixmap(str(self.project.photo_path))
++            if not candidate.isNull():
++                pixmap = candidate
++
++        if pixmap is not None:
++            self.photo_label.setStyleSheet(
++                "background-color: rgba(127,127,127,40); border-radius: 4px;"
++            )
++            self.photo_label.setText("")
++            self.photo_label.setPixmap(
++                pixmap.scaledToHeight(
++                    PHOTO_HEIGHT, Qt.TransformationMode.SmoothTransformation
++                )
++            )
++
+     def mousePressEvent(self, event) -> None:  # noqa: N802 (Qt override)
+         # FONTOS: a super() hívás előrébb van, mint az emit — ha a kattintás
+         # egy modális dialógust nyit meg, ami közben (pl. Mentésre) törli ezt
