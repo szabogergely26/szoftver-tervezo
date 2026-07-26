@@ -64,9 +64,16 @@ class ProjectDetailsWidget(QWidget):
         self._pending_cover_removed = False
 
         layout = QVBoxLayout(self)
+        self.name_label = QLabel(self.project.name)
+        name_font = self.name_label.font()
+        name_font.setPointSize(name_font.pointSize() + 2)
+        name_font.setBold(True)
+        self.name_label.setFont(name_font)
+        layout.addWidget(self.name_label)
 
         self.tabs = QTabWidget()
         layout.addWidget(self.tabs, 1)
+
 
         self._build_overview_tab()
         self._build_journal_tab()
