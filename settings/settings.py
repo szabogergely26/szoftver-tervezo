@@ -8,6 +8,7 @@ import logging
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDialog,
     QDialogButtonBox,
@@ -71,6 +72,17 @@ def save_splitter_sizes(sizes: list[int]) -> None:
     data = load_settings()
     data["splitter_sizes"] = list(sizes)
     save_settings(data)
+
+
+
+def get_close_to_tray() -> bool:
+    """Igaz, ha bezáráskor az app a tálcára kicsinyítve fusson tovább (alapból igen)."""
+    data = load_settings()
+    value = data.get("close_to_tray")
+    return value if isinstance(value, bool) else True
+
+
+
 
 
 
@@ -194,6 +206,12 @@ class SettingsDialog(QDialog):
     def _build_general_page(self) -> QWidget:
         page = QWidget()
         layout = QVBoxLayout(page)
+
+        self.close_to_tray_checkbox = QCheckBox(tr("general.close_to_tray"))
+        self.close_to_tray_checkbox.setChecked(get_close_to_tray())
+        layout.addWidget(self.close_to_tray_checkbox)
+
+
         layout.addWidget(QLabel(tr("settings.placeholder.general")))
         layout.addStretch()
         return page
@@ -255,6 +273,11 @@ class SettingsDialog(QDialog):
 
         if selected_view_mode:
             data["project_view_mode"] = selected_view_mode
+
+        data["close_to_tray"] = self.close_to_tray_checkbox.isChecked()
+
+
+
 
         save_settings(data)
 

@@ -151,7 +151,7 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "main.action.open_log": {"hu": "Napló megnyitása…", "en": "Open log…"},
 
 
-    # 
+    
 
 
 
@@ -253,7 +253,47 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "toolbar.highlight": {"hu": "Kiemelés", "en": "Highlight"},
     "toolbar.text_color": {"hu": "Betűszín", "en": "Text color"},
     "toolbar.font_size": {"hu": "Betűméret", "en": "Font size"},
+
+
+
+    # --- Tálcaikon ---
+    "main.tray.open": {"hu": "Megnyitás", "en" : "Open"},
+    "main.tray.in_progress" : {"hu": "Folyamatban lévő feladatok", "en": "Tasks in progress"},
+    "main.tray.next": {"hu": "Következő feladatok", "en": "Next Tasks"},
+    "main.tray.empty": {"hu": "Nincs ilyen feladat", "en": "There is no such Task"},
+    "main.tray.minimized_message": {"hu": "Kicsinyítve", "en": "Minimized"},
+    "general.close_to_tray": {"hu": "Bezáráskor tálcára kicsinyítés (kilépés helyett)", "en": "Minimize to tray on close (instead of quitting)"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
+
+
+    
+
+
+
+
+
+
+
+
+
+
 
 
 def set_language(lang_code: str) -> None:

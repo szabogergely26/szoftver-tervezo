@@ -8,15 +8,18 @@ from datetime import date
 
 
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QAction, QKeySequence, QIcon
+from PySide6.QtGui import QAction, QKeySequence, QIcon, QTextDocumentFragment
 from PySide6.QtWidgets import (
+    QApplication,
     QDialog,
     QFileDialog,
     QLabel,
     QMainWindow,
+    QMenu,
     QMessageBox,
     QScrollArea,
     QSplitter,
+    QSystemTrayIcon,
     QToolBar,
     QVBoxLayout,
     QWidget,
@@ -24,6 +27,8 @@ from PySide6.QtWidgets import (
 
 from ..core.storage import Storage
 from ..core.workspace import Workspace
+from ..core.models import TaskStatus
+
 from .flow_layout import FlowLayout
 
 from .widgets import ProjectCard
@@ -42,6 +47,7 @@ from settings.settings import (
     save_splitter_sizes,
     load_settings,
     save_settings,
+    get_close_to_tray,
 )
 
 from settings.translations import tr, language_signal
@@ -67,6 +73,11 @@ class MainWindow(QMainWindow):
         self._apply_view_mode_visibility()
 
         self.reload_cards()
+
+        self.reload_cards()
+
+        self._force_quit = False
+        self._build_tray_icon()
 
         
 
@@ -176,7 +187,7 @@ class MainWindow(QMainWindow):
 
         # --- Kilépés
         self.quit_action = QAction(QIcon.fromTheme("application-exit"), "", self)
-        self.quit_action.triggered.connect(self.close)
+        self.quit_action.triggered.connect(self._quit_app)
         self.file_menu.addAction(self.quit_action)
 
 
@@ -198,6 +209,92 @@ class MainWindow(QMainWindow):
 
 
 
+
+    # --- Tálcaikon
+    def _build_tray_icon(self) -> None:
+        self.tray_icon = QSystemTrayIcon(QIcon(str(ICON_PATH)), self)
+        self.tray_icon.setToolTip(tr("main.window_title"))
+
+        self.tray_menu = QMenu()
+        self.tray_menu.aboutToShow.connect(self._rebuild_tray_menu)
+        self.tray_icon.setContextMenu(self.tray_menu)
+
+        self.tray_icon.activated.connect(self._on_tray_activated)
+        self.tray_icon.show()
+
+    def _on_tray_activated(self, reason: QSystemTrayIcon.ActivationReason) -> None:
+        if reason in (
+            QSystemTrayIcon.ActivationReason.Trigger,
+            QSystemTrayIcon.ActivationReason.DoubleClick,
+        ):
+            self._show_main_window()
+
+    def _show_main_window(self) -> None:
+        self.showNormal()
+        self.raise_()
+        self.activateWindow()
+
+    def _rebuild_tray_menu(self) -> None:
+        self.tray_menu.clear()
+
+        open_action = self.tray_menu.addAction(tr("main.tray.open"))
+        open_action.triggered.connect(self._show_main_window)
+
+        self.tray_menu.addSeparator()
+
+        self._add_task_submenu(tr("main.tray.in_progress"), TaskStatus.IN_PROGRESS)
+        self._add_task_submenu(tr("main.tray.next"), TaskStatus.PENDING)
+
+        self.tray_menu.addSeparator()
+
+        quit_action = self.tray_menu.addAction(tr("main.action.quit"))
+        quit_action.triggered.connect(self._quit_app)
+
+    def _add_task_submenu(self, title: str, status: TaskStatus) -> None:
+        submenu = self.tray_menu.addMenu(title)
+        found_any = False
+
+        for project_dir in self.storage.list_projects(self.ws.projects_dir):
+            project = self.storage.read_project(project_dir)
+            tasks = [t for t in self.storage.read_tasks(project_dir) if t.status == status]
+            if not tasks:
+                continue
+
+            found_any = True
+            project_menu = submenu.addMenu(project.name)
+            for task in tasks:
+                # A tálcamenü egyszerű szöveget vár, a HTML-t itt sima szöveggé alakítjuk.
+                plain_text = QTextDocumentFragment.fromHtml(task.html).toPlainText()
+                action = project_menu.addAction(plain_text or "…")
+                action.setEnabled(False)  # egyelőre csak áttekintés, nem kattintható
+
+        if not found_any:
+            empty_action = submenu.addAction(tr("main.tray.empty"))
+            empty_action.setEnabled(False)
+
+    def _quit_app(self) -> None:
+        self._force_quit = True
+        self.tray_icon.hide()
+        app = QApplication.instance()
+        assert app is not None
+        app.quit()
+
+    def closeEvent(self, event) -> None:
+        if self._force_quit or not get_close_to_tray():
+            self.tray_icon.hide()
+            event.accept()
+            return
+
+        event.ignore()
+        self.hide()
+        self.tray_icon.showMessage(
+            tr("main.window_title"),
+            tr("main.tray.minimized_message"),
+            QSystemTrayIcon.MessageIcon.Information,
+            2000,
+        )
+
+    # --- Tálcaikon: vége --------
 
 
 
