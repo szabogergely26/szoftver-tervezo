@@ -16,20 +16,19 @@ from config import APP_VERSION, BUILD_CHANNEL, ICON_PATH
 from settings import apply_saved_language
 from tervezo.ui.main_window import MainWindow
 
-faulthandler.enable()
-
-
 from settings.settings import get_log_level
 from tervezo.core.app_logging import (
+    LOG_DIR,
     LOG_FILE,
     log_header,
     log_raw,
     logging,
     setup_logging,
+    CRASH_LOG,
 )
 
-crash_log_path = LOG_FILE.parent / "crash.log"
-faulthandler.enable(file=open(crash_log_path, "a"))
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+faulthandler.enable(file=open(CRASH_LOG, "a"))
 
 setup_logging(get_log_level())
 

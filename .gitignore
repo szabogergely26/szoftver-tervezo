@@ -22,6 +22,12 @@ venv/
 *.zip
 *.tar.gz
 
+# Biztonsági mentés mappák (bármilyen elnevezéssel: _backup, _BACKUP, stb.)
+*_backup*/
+*_BACKUP*/
+
+
+
 
 # Build kimenet
 dist/

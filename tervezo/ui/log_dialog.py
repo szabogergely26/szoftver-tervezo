@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from tervezo.core.app_logging import LOG_FILE, qt_log_handler
+from tervezo.core.app_logging import LOG_FILE, qt_log_handler, CRASH_LOG
 
 # Csak a szint-címke színe változik, a sor többi része alapszínű marad.
 LEVEL_COLORS = {
@@ -44,6 +44,10 @@ class LogDialog(QDialog):
         self.path_label = QLabel(f"Log fájl: {LOG_FILE}")
         self.path_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         layout.addWidget(self.path_label)
+
+        self.crash_path_label = QLabel(f"Súlyos hiba esetén itt: {CRASH_LOG}")
+        self.crash_path_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        layout.addWidget(self.crash_path_label)
 
         self.text_view = QPlainTextEdit()
         self.text_view.setReadOnly(True)
@@ -126,5 +130,10 @@ class LogDialog(QDialog):
         QApplication.clipboard().setText(self.text_view.toPlainText())
 
     def closeEvent(self, event) -> None:
-        qt_log_handler.log_record.disconnect(self._on_live_record)
+        try:
+            qt_log_handler.log_record.disconnect(self._on_live_record)
+        except TypeError:
+             # Már le volt iratkozva (pl. app-kilépéskor a MainWindow
+            # újra bezárja ezt az ablakot) - ez nem hiba.
+            pass
         super().closeEvent(event)

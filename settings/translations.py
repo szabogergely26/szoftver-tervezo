@@ -81,16 +81,62 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "main.menu.help": {"hu": "Súgó", "en": "Help"},
     "main.action.new_project": {"hu": "Új projekt", "en": "New project"},
     "main.action.new_project_toolbar": {"hu": "+ Új projekt", "en": "+ New project"},
+
+    # --- Megnyitás / Mentés / Beállítások
     "main.action.open": {"hu": "Megnyitás", "en": "Open"},
     "main.action.save": {"hu": "Mentés", "en": "Save"},
+
+
+    # ------------ Munkaterület import/export
+    "main.action.import_workspace": {"hu": "Importálás...", "en": "Import..."},
+    "main.action.export_workspace": {"hu": "Exportálás...", "en": "Export..."},
+
+    "main.export_error_title": {"hu": "Exportálási hiba", "en": "Export error"},
+    "main.export_done_title": {"hu": "Exportálás kész", "en": "Export complete"},
+    "main.export_done_text": {
+        "hu": "A munkaterület mentése elkészült:\n{path}",
+        "en": "Workspace export completed:\n{path}",
+    },
+
+    "main.import_error_title": {"hu": "Importálási hiba", "en": "Import error"},
+    "main.import_conflict_title": {"hu": "Ütköző projektek", "en": "Conflicting projects"},
+    "main.import_conflict_text": {
+        "hu": "A következő projektek már léteznek, és felülíródnak:\n\n{names}\n\nFolytatod?",
+        "en": "The following projects already exist and will be overwritten:\n\n{names}\n\nContinue?",
+    },
+    "main.import_done_title": {"hu": "Importálás kész", "en": "Import complete"},
+    "main.import_done_text": {
+        "hu": "A munkaterület visszaállítása megtörtént.",
+        "en": "Workspace import completed.",
+    },
+
+    # Ütköző nevek:
+    "main.import_extra_title": {"hu": "Nem importált, meglévő projektek", "en": "Existing projects not in the import"},
+    "main.import_extra_text": {
+        "hu": "A következő projektek megvannak nálad, de nem szerepelnek a most importált mentésben:\n\n{names}\n\nMegtartsuk őket (Igen), vagy töröljük (Nem)?",
+        "en": "The following projects exist locally but are not part of this import:\n\n{names}\n\nKeep them (Yes) or delete them (No)?",
+    },
+
+
+
+
+
+
+    # --- Beállítások
     "main.action.settings": {"hu": "Beállítások", "en": "Settings"},
-    
+
+    # --- Kilépés
     "main.action.quit": {"hu": "Kilépés", "en": "Quit"},
+
+
+
     "main.toolbar.name": {"hu": "Eszköztár", "en": "Toolbar"},
     "main.project_exists": {
         "hu": "Már van ilyen nevű projekt.",
         "en": "A project with this name already exists.",
     },
+
+    # -- Névjegy / About
     "main.action.about": {"hu": "Névjegy", "en": "About"},
 
     "main.sidebar.placeholder": {
@@ -100,9 +146,12 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
 
 
 
-
+    # --- Eszközök , Napló ---
     "main.menu.tools": {"hu": "Eszközök", "en": "Tools"},
     "main.action.open_log": {"hu": "Napló megnyitása…", "en": "Open log…"},
+
+
+    # 
 
 
 

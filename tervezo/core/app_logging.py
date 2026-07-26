@@ -18,6 +18,7 @@ from PySide6.QtCore import QObject, Signal
 
 LOG_DIR = Path.home() / ".tervezo" / "logs"
 LOG_FILE = LOG_DIR / "tervezo.log"
+CRASH_LOG = LOG_DIR / "crash.log"
 
 
 class QtLogHandler(logging.Handler, QObject):

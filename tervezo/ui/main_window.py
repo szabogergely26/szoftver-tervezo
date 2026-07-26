@@ -2,10 +2,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import zipfile
+import tempfile
+from datetime import date
+
+
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QAction, QKeySequence, QIcon
 from PySide6.QtWidgets import (
     QDialog,
+    QFileDialog,
     QLabel,
     QMainWindow,
     QMessageBox,
@@ -19,9 +25,13 @@ from PySide6.QtWidgets import (
 from ..core.storage import Storage
 from ..core.workspace import Workspace
 from .flow_layout import FlowLayout
+
+from .widgets import ProjectCard
+
+from .log_dialog import LogDialog
+from .about_dialog import AboutDialog
 from .new_project_dialog import NewProjectDialog
 from .project_dialog import ProjectDialog, ProjectDetailsWidget
-from .widgets import ProjectCard
 
 from config import ICON_PATH
 
@@ -40,6 +50,7 @@ from settings.translations import tr, language_signal
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self._log_dialog: LogDialog | None = None
         self.setWindowIcon(QIcon(str(ICON_PATH)))
         self.resize(1100, 720)
 
@@ -56,6 +67,8 @@ class MainWindow(QMainWindow):
         self._apply_view_mode_visibility()
 
         self.reload_cards()
+
+        
 
         language_signal.changed.connect(self._on_language_changed)
 
@@ -130,27 +143,87 @@ class MainWindow(QMainWindow):
 
     # ---------- Menü ----------
     def _build_menu(self):
+        # A menüben a szövegek a retranslate_ui() metódusban kerülnek beállításra.
+
+        # --- Menüsáv és Fájl menü
         self.file_menu = self.menuBar().addMenu("")
 
         self.new_project_action = QAction(QIcon.fromTheme("document-new"), "", self)
         self.new_project_action.triggered.connect(self.new_project)
         self.file_menu.addAction(self.new_project_action)
 
+        self.file_menu.addSeparator()
+
+
+        # --- Megnyitás / Mentés / Beállítások
         self.open_action = QAction(QIcon.fromTheme("document-open"), "", self)
+        self.open_action.triggered.connect(self.import_workspace)
         self.file_menu.addAction(self.open_action)
 
         self.save_action = QAction(QIcon.fromTheme("document-save"), "", self)
+        self.save_action.triggered.connect(self.export_workspace)
         self.file_menu.addAction(self.save_action)
 
         self.file_menu.addSeparator()
 
+        # --- Beállítások
         self.settings_action = QAction(QIcon.fromTheme("preferences-system"), "", self)
         self.settings_action.triggered.connect(self.open_settings)
         self.file_menu.addAction(self.settings_action)
 
+
+        self.file_menu.addSeparator()
+
+        # --- Kilépés
         self.quit_action = QAction(QIcon.fromTheme("application-exit"), "", self)
         self.quit_action.triggered.connect(self.close)
         self.file_menu.addAction(self.quit_action)
+
+
+         # --- Eszközök menü
+        self.tools_menu = self.menuBar().addMenu("")
+
+        self.log_action = QAction(QIcon.fromTheme("utilities-log-viewer"), "", self)
+        self.log_action.triggered.connect(self.open_log_dialog)
+        self.tools_menu.addAction(self.log_action)
+
+
+
+        # --- Súgó menü
+        self.help_menu = self.menuBar().addMenu(tr("main.menu.help"))
+
+        self.about_action = QAction(QIcon.fromTheme("help-about"), tr("main.action.about"), self)
+        self.about_action.triggered.connect(self.open_about)
+        self.help_menu.addAction(self.about_action)
+
+
+
+
+
+
+    def open_log_dialog(self) -> None:
+        if  self._log_dialog is None:
+            self._log_dialog = LogDialog(self)
+            self._log_dialog.destroyed.connect(self._on_log_dialog_destroyed)
+        self._log_dialog.show()
+        self._log_dialog.raise_()
+        self._log_dialog.activateWindow()
+
+    def _on_log_dialog_destroyed(self) -> None:
+        self._log_dialog = None
+
+
+    def open_about(self) -> None:
+        dialog = AboutDialog(self)
+        dialog.exec()
+
+
+    
+
+
+
+
+
 
     def open_settings(self) -> None:
         dialog = SettingsDialog(self)
@@ -185,10 +258,15 @@ class MainWindow(QMainWindow):
 
         self.file_menu.setTitle(tr("main.menu.file"))
         self.new_project_action.setText(tr("main.action.new_project"))
-        self.open_action.setText(tr("main.action.open"))
-        self.save_action.setText(tr("main.action.save"))
+
+        self.open_action.setText(tr("main.action.import_workspace"))
+        self.save_action.setText(tr("main.action.export_workspace"))
+
         self.settings_action.setText(tr("main.action.settings"))
         self.quit_action.setText(tr("main.action.quit"))
+        self.tools_menu.setTitle(tr("main.menu.tools"))
+        self.log_action.setText(tr("main.action.open_log"))
+        self.about_action.setText(tr("main.action.about"))
 
         self.toolbar.setWindowTitle(tr("main.toolbar.name"))
         self.act_new_project_toolbar.setText(tr("main.action.new_project_toolbar"))
@@ -221,6 +299,85 @@ class MainWindow(QMainWindow):
             self._open_project_in_sidebar(project_dir)
         else:
             self._open_project_in_dialog(project_dir)
+
+
+    def export_workspace(self) -> None:
+        default_name = f"Projektek_mentes_{date.today().strftime('%Y-%m-%d')}.zip"
+        path_str, _ = QFileDialog.getSaveFileName(
+            self, tr("main.action.export_workspace"), default_name, "Zip fájlok (*.zip)"
+        )
+        if not path_str:
+            return
+
+        try:
+            self.ws.export_to_zip(Path(path_str))
+        except OSError as exc:
+            QMessageBox.critical(self, tr("main.export_error_title"), str(exc))
+            return
+
+        QMessageBox.information(
+            self,
+            tr("main.export_done_title"),
+            tr("main.export_done_text", path=path_str),
+        )
+
+    def import_workspace(self) -> None:
+        path_str, _ = QFileDialog.getOpenFileName(
+            self, tr("main.action.import_workspace"), "", "Zip fájlok (*.zip)"
+        )
+        if not path_str:
+            return
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            try:
+                conflicts = self.ws.preview_conflicts(Path(path_str), tmp_path)
+            except (OSError, zipfile.BadZipFile) as exc:
+                QMessageBox.critical(self, tr("main.import_error_title"), str(exc))
+                return
+
+            if conflicts:
+                names = "\n".join(f"- {c}" for c in conflicts)
+                reply = QMessageBox.question(
+                    self,
+                    tr("main.import_conflict_title"),
+                    tr("main.import_conflict_text", names=names),
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                )
+                if reply != QMessageBox.StandardButton.Yes:
+                    return
+
+
+            extra_local = self.ws.preview_extra_local(tmp_path)
+            if extra_local:
+                names = "\n".join(f"- {c}" for c in extra_local)
+                reply = QMessageBox.question(
+                    self,
+                    tr("main.import_extra_title"),
+                    tr("main.import_extra_text", names=names),
+                    QMessageBox.StandardButton.Yes
+                    | QMessageBox.StandardButton.No
+                    | QMessageBox.StandardButton.Cancel,
+                )
+                if reply == QMessageBox.StandardButton.Cancel:
+                    return
+                if reply == QMessageBox.StandardButton.No:
+                    self.ws.remove_projects(extra_local)
+
+
+            self.ws.import_from_extracted(tmp_path)
+
+        self.reload_cards()
+        QMessageBox.information(
+            self, tr("main.import_done_title"), tr("main.import_done_text")
+        )
+
+
+
+
+
+
+
 
     def _open_project_in_dialog(self, project_dir: Path) -> None:
         dlg = ProjectDialog(self.storage, project_dir, self)
