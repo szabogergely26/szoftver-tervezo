@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /usr/share/tervezo
+exec /usr/bin/python3 ./main.py

@@ -2,37 +2,24 @@
 
 from pathlib import Path
 
-# ---------- Alapértelmezett útvonalak ----------
+# ---------- Program (csak olvasható, telepített) útvonalak ----------
 
-# A projekt gyökérkönyvtára (Szoftvertervezo/)
 BASE_DIR = Path(__file__).resolve().parent
 
-# A settings/ csomag könyvtára (settings.py, translations.py, stb.)
-SETTINGS_DIR = BASE_DIR / "settings"   # a beállítások könyvtára (pl. settings/settings.py, settings/translations.py, stb.)
+SETTINGS_DIR = BASE_DIR / "settings"
 
-# A ténylegesen elmentett beállítások fájlja (JSON)
-# FIGYELEM: fejlesztés alatt a projekt gyökerében van; csomagolásnál majd
-# a felhasználó user-config mappájába kerül (pl. platformdirs csomaggal),
-# hogy ne kelljen írási jog a program telepítési helyére.
-SETTINGS_FILE = BASE_DIR / "settings.json"
+ASSETS_DIR = BASE_DIR / "assets"
+ICON_PATH = ASSETS_DIR / "icons" / "app_icon.png"
 
+# ---------- Felhasználói adatok (mindig írható, sose az app mellett) ----------
 
- # eszközök, ikonok, képek, stb. könyvtára
-ASSETS_DIR = BASE_DIR / "assets"   
+USER_DATA_DIR = Path.home() / ".config" / "szoftvertervezo"
+USER_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-# az alkalmazás ikonja (tálca-/taskbar-ikon, ablakikon, stb.)
-ICON_PATH = ASSETS_DIR / "icons" / "app_icon.png"   
-
-
-
+SETTINGS_FILE = USER_DATA_DIR / "settings.json"
 
 
 # ---------- Verzió / kiadási csatorna ----------
 
 APP_VERSION = "0.2.0"
-
-# Lehetséges értékek: "dev", "preview", "stable"
-# FIGYELEM: ez az érték ágfüggő! dev-en "dev", preview-n "preview",
-# main-en "stable" legyen. Merge után kézzel vissza kell állítani az
-# adott ágnak megfelelő értékre, és külön commitolni (lásd CHANGELOG).
-BUILD_CHANNEL = "preview"
+BUILD_CHANNEL = "dev"

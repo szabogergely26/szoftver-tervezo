@@ -16,25 +16,36 @@ from pathlib import Path
 
 from PySide6.QtCore import QObject, Signal
 
-LOG_DIR = Path.home() / ".tervezo" / "logs"
+from config import USER_DATA_DIR
+
+LOG_DIR = USER_DATA_DIR / "logs"
 LOG_FILE = LOG_DIR / "tervezo.log"
 CRASH_LOG = LOG_DIR / "crash.log"
 
 
-class QtLogHandler(logging.Handler, QObject):
-    """Logging handler, ami minden rekordot Qt signal-ként is kibocsát,
-    hogy a UI valós időben megjeleníthesse."""
+class _LogSignalEmitter(QObject):
+    """Kizárólag a Signal hordozója — külön a logging.Handler-től,
+    hogy a Qt Signal-gépezet és a Handler.emit() metódusa
+    ne ütközzön névben (lásd PySide6 6.8.x ismert kvirk)."""
 
     log_record = Signal(str, int)  # (formázott szöveg, levelno)
 
+
+class QtLogHandler(logging.Handler):
+    """Logging handler, ami minden rekordot Qt signal-ként is kibocsát,
+    hogy a UI valós időben megjeleníthesse."""
+
     def __init__(self) -> None:
-        logging.Handler.__init__(self)
-        QObject.__init__(self)
+        super().__init__()
+        self._emitter = _LogSignalEmitter()
+
+    @property
+    def log_record(self) -> Signal:
+        return self._emitter.log_record
 
     def emit(self, record: logging.LogRecord) -> None:
         msg = self.format(record)
-        self.log_record.emit(msg, record.levelno)
-
+        self._emitter.log_record.emit(msg, record.levelno)
 
 # Modul-szintű, egyetlen példány - a LogDialog erre csatlakozik rá,
 # bárhányszor nyitja/zárja meg a felhasználó az ablakot.

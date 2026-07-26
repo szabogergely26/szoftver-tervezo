@@ -4,12 +4,12 @@ import shutil
 import zipfile
 from pathlib import Path
 
-
+from config import USER_DATA_DIR
 
 class Workspace:
     def __init__(self):
         # Program gyökérkönyvtára
-        self.root = Path(__file__).resolve().parents[2] / "Projektek"
+        self.root = USER_DATA_DIR / "Projektek"
 
         self.projects_dir = self.root / "projects"
         self.inbox_dir = self.root / "inbox"
