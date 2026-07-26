@@ -35,4 +35,4 @@ APP_VERSION = "0.2.0"
 # FIGYELEM: ez az érték ágfüggő! dev-en "dev", preview-n "preview",
 # main-en "stable" legyen. Merge után kézzel vissza kell állítani az
 # adott ágnak megfelelő értékre, és külön commitolni (lásd CHANGELOG).
-BUILD_CHANNEL = "dev"
+BUILD_CHANNEL = "preview"
