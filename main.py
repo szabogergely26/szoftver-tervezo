@@ -44,8 +44,12 @@ logging.info(f"Verzió: {APP_VERSION}")
 
 def main() -> int:
     app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)
+
     logging.info("QApplication létrejött")
+
     app.setWindowIcon(QIcon(str(ICON_PATH)))  # ez adja a tálca-/taskbar-ikont
+    
     logging.info("Nyelv alkalmazva, MainWindow létrehozása előtt")
     
     apply_saved_language()

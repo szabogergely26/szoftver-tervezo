@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
     QToolBar,
     QVBoxLayout,
     QWidget,
+    QWidgetAction,
 )
 
 from ..core.storage import Storage
@@ -242,15 +243,23 @@ class MainWindow(QMainWindow):
 
         self.tray_menu.addSeparator()
 
-        self._add_task_submenu(tr("main.tray.in_progress"), TaskStatus.IN_PROGRESS)
-        self._add_task_submenu(tr("main.tray.next"), TaskStatus.PENDING)
+        self._add_task_submenu(tr("main.tray.in_progress"), TaskStatus.IN_PROGRESS, tab_index=2)
+        self._add_task_submenu(tr("main.tray.next"), TaskStatus.PENDING, tab_index=1)
 
         self.tray_menu.addSeparator()
 
         quit_action = self.tray_menu.addAction(tr("main.action.quit"))
         quit_action.triggered.connect(self._quit_app)
 
-    def _add_task_submenu(self, title: str, status: TaskStatus) -> None:
+
+    def _add_task_submenu(
+            self, 
+            title: str, 
+            status: TaskStatus,
+            tab_index: int
+
+        ) -> None:
+
         submenu = self.tray_menu.addMenu(title)
         found_any = False
 
@@ -263,14 +272,30 @@ class MainWindow(QMainWindow):
             found_any = True
             project_menu = submenu.addMenu(project.name)
             for task in tasks:
-                # A tálcamenü egyszerű szöveget vár, a HTML-t itt sima szöveggé alakítjuk.
                 plain_text = QTextDocumentFragment.fromHtml(task.html).toPlainText()
                 action = project_menu.addAction(plain_text or "…")
-                action.setEnabled(False)  # egyelőre csak áttekintés, nem kattintható
+                action.triggered.connect(
+                    lambda checked=False, p=project_dir, i=tab_index: self._open_project_in_dialog(p, i)
+                )
 
         if not found_any:
             empty_action = submenu.addAction(tr("main.tray.empty"))
             empty_action.setEnabled(False)
+
+
+
+
+    
+    def _add_readonly_menu_label(self, menu: QMenu, text: str) -> None:
+        """Csak megjelenítő, nem kattintható menütétel – jól olvasható, egyedi színnel."""
+        label = QLabel(text)
+        label.setStyleSheet("padding: 4px 24px; color: palette(text);")
+        label.setWordWrap(True)
+
+        action = QWidgetAction(menu)
+        action.setDefaultWidget(label)
+        action.setEnabled(False)  # kattintásra reagáljon-e: nem
+        menu.addAction(action)
 
     def _quit_app(self) -> None:
         self._force_quit = True
@@ -476,8 +501,16 @@ class MainWindow(QMainWindow):
 
 
 
-    def _open_project_in_dialog(self, project_dir: Path) -> None:
-        dlg = ProjectDialog(self.storage, project_dir, self)
+    def _open_project_in_dialog(
+            self, 
+            project_dir: Path,
+            initial_tab_index: int | None = None
+
+    )-> None:
+
+        dlg = ProjectDialog(
+            self.storage, project_dir, self, initial_tab_index=initial_tab_index
+        )
         dlg.project_changed.connect(lambda: QTimer.singleShot(0, self.reload_cards))
         dlg.project_deleted.connect(lambda: QTimer.singleShot(0, self.reload_cards))
         dlg.exec()
