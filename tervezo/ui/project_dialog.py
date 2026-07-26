@@ -287,30 +287,9 @@ class ProjectDetailsWidget(QWidget):
         layout.addWidget(toolbar)
         layout.addWidget(self.journal_editor, 1)
 
-    def _add_task_submenu(self, title: str, status: TaskStatus) -> None:
-        submenu = self.tray_menu.addMenu(title)
-        found_any = False
-
-        for project_dir in self.storage.list_projects(self.ws.projects_dir):
-            project = self.storage.read_project(project_dir)
-            tasks = [t for t in self.storage.read_tasks(project_dir) if t.status == status]
-            if not tasks:
-                continue
-
-            found_any = True
-            project_menu = submenu.addMenu(project.name)
-            for task in tasks:
-                plain_text = QTextDocumentFragment.fromHtml(task.html).toPlainText()
-                action = project_menu.addAction(plain_text or "…")
-                action.triggered.connect(
-                    lambda checked=False, p=project_dir: self._open_project_in_dialog(p)
-                )
-
-        if not found_any:
-            empty_action = submenu.addAction(tr("main.tray.empty"))
-            empty_action.setEnabled(False)
         self.tabs.addTab(tab, tr("project.tab.journal"))
 
+    
     def _on_new_journal_entry(self) -> None:
         html = self.journal_editor.toHtml()
         cursor = self.journal_editor.textCursor()

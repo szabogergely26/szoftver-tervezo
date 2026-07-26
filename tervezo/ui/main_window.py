@@ -122,6 +122,8 @@ class MainWindow(QMainWindow):
     def _reset_sidebar_placeholder(self) -> None:
         while self.details_layout.count():
             item = self.details_layout.takeAt(0)
+            if item is None:
+                continue
             w = item.widget()
             if w:
                 w.deleteLater()
@@ -518,6 +520,8 @@ class MainWindow(QMainWindow):
     def _open_project_in_sidebar(self, project_dir: Path) -> None:
         while self.details_layout.count():
             item = self.details_layout.takeAt(0)
+            if item is None:
+                continue
             w = item.widget()
             if w:
                 w.deleteLater()
