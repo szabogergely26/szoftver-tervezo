@@ -131,8 +131,17 @@ class TaskRowWidget(QWidget):
     toggled = Signal(int, bool)
     edit_requested = Signal(int)
     delete_requested = Signal(int)
+    move_requested = Signal(int, int)  # (task_id, irány: -1 = fel, +1 = le)
 
-    def __init__(self, task: TaskItem, mode: str = "pending", parent: QWidget | None = None):
+    def __init__(
+            self, 
+            task: TaskItem, 
+            mode: str = "pending", 
+            parent: QWidget | None = None,
+            index: int | None = None,
+            is_first: bool = False,
+            is_last: bool = False,
+    ):
         super().__init__(parent)
         self.task_id = task.id
 
@@ -140,6 +149,27 @@ class TaskRowWidget(QWidget):
         layout.setContentsMargins(4, 2, 4, 2)
 
         if mode == "pending":
+            if index is not None:
+                number_label = QLabel(f"{index}.")
+                number_label.setFixedWidth(24)
+                layout.addWidget(number_label)
+
+            move_up_btn = QPushButton("▲")
+            move_up_btn.setFixedWidth(28)
+            move_up_btn.setEnabled(not is_first)
+            move_up_btn.clicked.connect(
+                lambda: self.move_requested.emit(self.task_id, -1)
+            )
+            layout.addWidget(move_up_btn)
+
+            move_down_btn = QPushButton("▼")
+            move_down_btn.setFixedWidth(28)
+            move_down_btn.setEnabled(not is_last)
+            move_down_btn.clicked.connect(
+                lambda: self.move_requested.emit(self.task_id, 1)
+            )
+            layout.addWidget(move_down_btn)
+
             start_btn = QPushButton(tr("project.task.start"))
             start_btn.clicked.connect(lambda: self.start_requested.emit(self.task_id))
             layout.addWidget(start_btn)

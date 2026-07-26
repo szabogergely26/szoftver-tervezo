@@ -332,19 +332,36 @@ class ProjectDetailsWidget(QWidget):
             TaskStatus.DONE: (self.done_tasks_list, "done"),
         }
 
+        pending_total = sum(1 for t in self.tasks if t.status == TaskStatus.PENDING)
+        pending_seen = 0
+
         for task in self.tasks:
             target_list, mode = list_by_status[task.status]
 
-            row = TaskRowWidget(task, mode=mode)
+            if task.status == TaskStatus.PENDING:
+                pending_seen += 1
+                row = TaskRowWidget(
+                    task,
+                    mode=mode,
+                    index=pending_seen,
+                    is_first=(pending_seen == 1),
+                    is_last=(pending_seen == pending_total),
+                )
+            else:
+                row = TaskRowWidget(task, mode=mode)
+
             row.start_requested.connect(self._on_task_start)
             row.toggled.connect(self._on_task_toggled)
             row.edit_requested.connect(self._on_task_edit)
             row.delete_requested.connect(self._on_task_delete)
+            row.move_requested.connect(self._on_task_move)
 
             item = QListWidgetItem()
             item.setSizeHint(row.sizeHint())
             target_list.addItem(item)
             target_list.setItemWidget(item, row)
+
+
 
     def _on_add_task(self) -> None:
         text = self.new_task_edit.text().strip()
@@ -382,6 +399,37 @@ class ProjectDetailsWidget(QWidget):
     def _on_task_delete(self, task_id: int) -> None:
         self.tasks = [t for t in self.tasks if t.id != task_id]
         self._reload_tasks()
+
+
+
+    def _on_task_move(self, task_id: int, direction: int) -> None:
+        pending_indices = [
+            i for i, t in enumerate(self.tasks) if t.status == TaskStatus.PENDING
+        ]
+        try:
+            pos = next(
+                p for p, i in enumerate(pending_indices) if self.tasks[i].id == task_id
+            )
+        except StopIteration:
+            return
+
+        new_pos = pos + direction
+        if not (0 <= new_pos < len(pending_indices)):
+            return
+
+        i, j = pending_indices[pos], pending_indices[new_pos]
+        self.tasks[i], self.tasks[j] = self.tasks[j], self.tasks[i]
+        self._reload_tasks()
+
+
+
+
+
+
+
+
+
+    
 
     # ---------- Mentés / Törlés ----------
     def _collect_project_from_form(self) -> None:

@@ -242,6 +242,10 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "widgets.milestone_description_label": {"hu": "Leírás:", "en": "Description:"},
     "widgets.task_edit_title": {"hu": "Feladat szerkesztése", "en": "Edit task"},
 
+    "project.task.start": {"hu": "Elkezdés", "en": "Start"},
+
+
+
     # --- Formázó eszköztár ---
     "toolbar.bold": {"hu": "Félkövér", "en": "Bold"},
     "toolbar.italic": {"hu": "Dőlt", "en": "Italic"},
