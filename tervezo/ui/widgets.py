@@ -173,13 +173,23 @@ class TaskRowWidget(QWidget):
             start_btn = QPushButton(tr("project.task.start"))
             start_btn.clicked.connect(lambda: self.start_requested.emit(self.task_id))
             layout.addWidget(start_btn)
-        else:
+
+        elif mode == "in_progress":
             self.checkbox = QCheckBox()
-            self.checkbox.setChecked(mode == "done")
+            self.checkbox.setChecked(False)
             self.checkbox.toggled.connect(
                 lambda checked: self.toggled.emit(self.task_id, checked)
             )
             layout.addWidget(self.checkbox)
+
+            
+
+
+        else:
+            # mode == "done"
+            done_label = QLabel(f"✅ {task.completed_at or ''}")
+            done_label.setStyleSheet("color: #2e7d32; font-weight: bold;")
+            layout.addWidget(done_label)
 
         self.label = QLabel()
         self.label.setTextFormat(Qt.TextFormat.RichText)
@@ -187,16 +197,24 @@ class TaskRowWidget(QWidget):
         self.label.setWordWrap(True)
         layout.addWidget(self.label, 1)
 
-        edit_btn = QPushButton(tr("common.edit"))
-        edit_btn.clicked.connect(lambda: self.edit_requested.emit(self.task_id))
-        layout.addWidget(edit_btn)
+        if mode != "done":
+            edit_btn = QPushButton(tr("common.edit"))
+            edit_btn.clicked.connect(lambda: self.edit_requested.emit(self.task_id))
+            layout.addWidget(edit_btn)
 
-        delete_btn = QPushButton(tr("common.delete"))
-        delete_btn.clicked.connect(lambda: self.delete_requested.emit(self.task_id))
-        layout.addWidget(delete_btn)
+            delete_btn = QPushButton(tr("common.delete"))
+            delete_btn.clicked.connect(lambda: self.delete_requested.emit(self.task_id))
+            layout.addWidget(delete_btn)
+
+
 
     def set_html(self, html: str) -> None:
         self.label.setText(html)
+
+
+
+
+
 
 
 

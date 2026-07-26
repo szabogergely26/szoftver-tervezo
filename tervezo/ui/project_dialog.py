@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer, Signal
@@ -384,6 +386,9 @@ class ProjectDetailsWidget(QWidget):
         for t in self.tasks:
             if t.id == task_id:
                 t.status = TaskStatus.DONE if checked else TaskStatus.IN_PROGRESS
+                t.completed_at = (
+                    datetime.now().astimezone().strftime("%Y.%m.%d %H:%M") if checked else None
+                )
                 break
         self._reload_tasks()
 

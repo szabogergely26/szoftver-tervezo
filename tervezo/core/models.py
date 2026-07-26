@@ -84,6 +84,7 @@ class TaskItem:
     id: int
     html: str
     status: TaskStatus = TaskStatus.PENDING
+    completed_at:  str | None = None
 
     def to_dict(self) -> dict:
         return {"id": self.id, "html": self.html, "status": self.status.value}
