@@ -29,7 +29,7 @@ ICON_PATH = ASSETS_DIR / "icons" / "app_icon.png"
 
 # ---------- Verzió / kiadási csatorna ----------
 
-APP_VERSION = "0.1.0"
+APP_VERSION = "0.2.0"
 
 # Lehetséges értékek: "dev", "preview", "stable"
 # FIGYELEM: ez az érték ágfüggő! dev-en "dev", preview-n "preview",
