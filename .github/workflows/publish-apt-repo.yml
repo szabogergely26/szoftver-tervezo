@@ -1,0 +1,184 @@
+name: Publish APT repository
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-apt-repo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install repository build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev fakeroot rsync gzip coreutils gnupg
+
+      - name: Make build script executable
+        run: |
+          chmod +x packaging/deb/build_deb.sh
+
+      # A build_deb.sh a Tervező projektben ezt hozza létre:
+      # dist/tervezo_0.2.0_all.deb
+      - name: Build deb package
+        run: |
+          ./packaging/deb/build_deb.sh
+
+      - name: Create APT repository structure
+        run: |
+          set -e
+
+          PACKAGE_NAME="tervezo"
+          REPO_DIR="apt-repo"
+          POOL_DIR="$REPO_DIR/pool/main/t/$PACKAGE_NAME"
+          DIST_DIR="$REPO_DIR/dists/stable"
+          BINARY_DIR="$DIST_DIR/main/binary-all"
+
+          # FONTOS ELTÉRÉS a Pénzügyi Naplótól: itt "dist", nem "build".
+          DEB_FILE="$(find packaging/deb/dist -maxdepth 1 -type f -name "${PACKAGE_NAME}_*_all.deb" -print -quit)"
+
+          if [ -z "$DEB_FILE" ]; then
+            echo "Nem található .deb fájl a dist mappában."
+            exit 1
+          fi
+
+          rm -rf "$REPO_DIR"
+
+          mkdir -p "$POOL_DIR"
+          mkdir -p "$BINARY_DIR"
+
+          cp packaging/apt/tervezo-archive-keyring.gpg "$REPO_DIR/"
+
+          cp "$DEB_FILE" "$POOL_DIR/"
+
+          cd "$REPO_DIR"
+
+          echo "==> Packages index generálása"
+          dpkg-scanpackages --arch all pool /dev/null > dists/stable/main/binary-all/Packages
+
+          echo "==> Packages.gz generálása"
+          gzip -9 -k -f dists/stable/main/binary-all/Packages
+
+          cd dists/stable
+
+          echo "==> Release fájl létrehozása"
+            {
+              printf '%s\n' "Origin: Tervezo"
+              printf '%s\n' "Label: Tervezo"
+              printf '%s\n' "Suite: stable"
+              printf '%s\n' "Codename: stable"
+              printf '%s\n' "Architectures: all"
+              printf '%s\n' "Components: main"
+              printf '%s\n' "Description: APT repository for Tervezo"
+              printf '%s\n' "Date: $(date -Ru)"
+            } > Release
+
+          echo "MD5Sum:" >> Release
+          for file in main/binary-all/Packages main/binary-all/Packages.gz; do
+            printf " %s %16s %s\n" "$(md5sum "$file" | cut -d' ' -f1)" "$(stat -c%s "$file")" "$file" >> Release
+          done
+
+          echo "SHA1:" >> Release
+          for file in main/binary-all/Packages main/binary-all/Packages.gz; do
+            printf " %s %16s %s\n" "$(sha1sum "$file" | cut -d' ' -f1)" "$(stat -c%s "$file")" "$file" >> Release
+          done
+
+          echo "SHA256:" >> Release
+          for file in main/binary-all/Packages main/binary-all/Packages.gz; do
+            printf " %s %16s %s\n" "$(sha256sum "$file" | cut -d' ' -f1)" "$(stat -c%s "$file")" "$file" >> Release
+          done
+
+      - name: Import GPG signing key
+        env:
+          APT_GPG_PRIVATE_KEY: ${{ secrets.APT_GPG_PRIVATE_KEY }}
+        run: |
+          set -e
+          mkdir -p ~/.gnupg
+          chmod 700 ~/.gnupg
+          echo "$APT_GPG_PRIVATE_KEY" | gpg --batch --import
+          gpg --list-secret-keys --keyid-format=long
+
+      - name: Sign APT repository
+        env:
+          APT_GPG_PASSPHRASE: ${{ secrets.APT_GPG_PASSPHRASE }}
+        run: |
+          set -e
+          cd apt-repo/dists/stable
+
+          GPG_KEY_ID="$(gpg --list-secret-keys --keyid-format=long | awk '/sec/{print $2}' | cut -d'/' -f2 | head -n1)"
+
+          echo "Using GPG key: $GPG_KEY_ID"
+
+          gpg --batch --yes \
+            --pinentry-mode loopback \
+            --passphrase "$APT_GPG_PASSPHRASE" \
+            --default-key "$GPG_KEY_ID" \
+            --clearsign \
+            --output InRelease \
+            Release
+
+          gpg --batch --yes \
+            --pinentry-mode loopback \
+            --passphrase "$APT_GPG_PASSPHRASE" \
+            --default-key "$GPG_KEY_ID" \
+            --detach-sign \
+            --armor \
+            --output Release.gpg \
+            Release
+
+      - name: Deploy APT repository to gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+
+          PACKAGE_NAME="tervezo"
+          SUITE="stable"
+          REMOTE_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+          rm -rf gh-pages
+
+          if git ls-remote --exit-code --heads "$REMOTE_URL" gh-pages >/dev/null 2>&1; then
+            git clone --branch gh-pages --single-branch "$REMOTE_URL" gh-pages
+          else
+            mkdir gh-pages
+            cd gh-pages
+            git init
+            git checkout -b gh-pages
+            cd ..
+          fi
+
+          cd gh-pages
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git remote set-url origin "$REMOTE_URL" 2>/dev/null || git remote add origin "$REMOTE_URL"
+
+          touch .nojekyll
+
+          cd ..
+
+          rm -rf "gh-pages/dists/$SUITE"
+          rm -rf "gh-pages/pool/main/t/$PACKAGE_NAME"
+
+          rsync -a apt-repo/ gh-pages/
+
+          cd gh-pages
+
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "Nincs publikálandó változás."
+          else
+            git commit -m "Publish APT repository: $SUITE"
+            git push origin gh-pages
+          fi
