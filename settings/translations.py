@@ -228,6 +228,34 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "hu": "Biztosan törlöd a(z) „{name}” projektet és minden tartalmát?\n\nEz nem vonható vissza.",
         "en": "Are you sure you want to delete the project “{name}” and all its contents?\n\nThis cannot be undone.",
     },
+
+
+    "project.delete_confirm_text": {
+        "hu": "Biztosan törlöd a(z) „{name}” projektet és minden tartalmát?\n\nEz nem vonható vissza.",
+        "en": "Are you sure you want to delete the project “{name}” and all its contents?\n\nThis cannot be undone.",
+    },
+    "project.close_confirm_title": {
+        "hu": "Mentetlen módosítások",
+        "en": "Unsaved changes",
+    },
+    "project.close_confirm_text": {
+        "hu": "El szeretnéd menteni a módosításokat, mielőtt bezárod?",
+        "en": "Do you want to save your changes before closing?",
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     "project.details_title": {"hu": "Részletek – {name}", "en": "Details – {name}"},
 
     # --- Projekt-státusz ---
