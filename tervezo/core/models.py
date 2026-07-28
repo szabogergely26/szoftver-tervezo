@@ -87,7 +87,12 @@ class TaskItem:
     completed_at:  str | None = None
 
     def to_dict(self) -> dict:
-        return {"id": self.id, "html": self.html, "status": self.status.value}
+        return {
+            "id": self.id, 
+            "html": self.html, 
+            "status": self.status.value,
+            "completed_at": self.completed_at,
+        }
 
     @staticmethod
     def from_dict(data: dict) -> TaskItem:
@@ -98,7 +103,12 @@ class TaskItem:
         else:
             status = TaskStatus.DONE if data.get("done") else TaskStatus.PENDING
 
-        return TaskItem(id=data["id"], html=data.get("html", ""), status=status)
+        return TaskItem(
+            id=data["id"], 
+            html=data.get("html", ""), 
+            status=status,
+            completed_at=data.get("completed_at"),
+        )
 
     @property
     def done(self) -> bool:
