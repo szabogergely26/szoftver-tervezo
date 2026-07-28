@@ -94,16 +94,28 @@ class ProjectDetailsWidget(QWidget):
 
         if show_close_button:
             close_btn = QPushButton(tr("common.close"))
-            close_btn.clicked.connect(self.close_requested.emit)
+            close_btn.clicked.connect(self._on_close_clicked)
             button_row.addWidget(close_btn)
 
 
         if initial_tab_index is not None:
             self.tabs.setCurrentIndex(initial_tab_index)
 
-
-
         layout.addLayout(button_row)
+
+
+        self._last_saved_snapshot = self._make_snapshot()
+
+
+
+
+
+
+
+
+
+
+
 
     # ---------- Áttekintés ----------
     def _build_overview_tab(self) -> None:
@@ -468,7 +480,47 @@ class ProjectDetailsWidget(QWidget):
 
         self._pending_cover_path = None
         self._pending_cover_removed = False
+
         self.project_changed.emit()
+        self._last_saved_snapshot = self._make_snapshot()
+
+
+    def _make_snapshot(self) -> tuple:
+        """A jelenlegi (form + task-lista) állapot pillanatképe,
+        hogy bezáráskor össze tudjuk hasonlítani a legutóbb mentettel."""
+        self._collect_project_from_form()
+        return (
+            self.project.to_dict(),
+            self.journal_editor.toHtml(),
+            [t.to_dict() for t in self.tasks],
+            self._pending_cover_path,
+            self._pending_cover_removed,
+        )
+
+
+    def _on_close_clicked(self) -> None:
+        if self._make_snapshot() == self._last_saved_snapshot:
+            self.close_requested.emit()
+            return
+
+        buttons = (
+            QMessageBox.StandardButton.Save
+            | QMessageBox.StandardButton.Discard
+            | QMessageBox.StandardButton.Cancel
+        )
+        res = QMessageBox.question(
+            self,
+            tr("project.close_confirm_title"),
+            tr("project.close_confirm_text"),
+            buttons,
+            QMessageBox.StandardButton.Save,
+        )
+        if res == QMessageBox.StandardButton.Cancel:
+            return
+        if res == QMessageBox.StandardButton.Save:
+            self._on_save()
+        self.close_requested.emit()
+
 
     def _on_delete(self) -> None:
         buttons = QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
