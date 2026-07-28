@@ -74,6 +74,7 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "common.custom_color_ellipsis": {"hu": "Egyéni szín...", "en": "Custom color..."},
     "common.date_placeholder": {"hu": "ÉÉÉÉ.HH.NN", "en": "YYYY.MM.DD"},
     "common.exists_title": {"hu": "Létezik", "en": "Already exists"},
+    "project.close_discard_button": {"hu": "Elvetés", "en": "Discard"},
 
     # ----------- Főablak ---------------
     "main.window_title": {"hu": "Tervező", "en": "Designer"},

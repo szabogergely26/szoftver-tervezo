@@ -503,21 +503,22 @@ class ProjectDetailsWidget(QWidget):
             self.close_requested.emit()
             return
 
-        buttons = (
-            QMessageBox.StandardButton.Save
-            | QMessageBox.StandardButton.Discard
-            | QMessageBox.StandardButton.Cancel
-        )
-        res = QMessageBox.question(
-            self,
-            tr("project.close_confirm_title"),
-            tr("project.close_confirm_text"),
-            buttons,
-            QMessageBox.StandardButton.Save,
-        )
-        if res == QMessageBox.StandardButton.Cancel:
+        msg_box = QMessageBox(self)
+        msg_box.setIcon(QMessageBox.Icon.Question)
+        msg_box.setWindowTitle(tr("project.close_confirm_title"))
+        msg_box.setText(tr("project.close_confirm_text"))
+
+        save_btn = msg_box.addButton(tr("common.save"), QMessageBox.ButtonRole.AcceptRole)
+        discard_btn = msg_box.addButton(tr("project.close_discard_button"), QMessageBox.ButtonRole.DestructiveRole)
+        cancel_btn = msg_box.addButton(tr("common.cancel"), QMessageBox.ButtonRole.RejectRole)
+        msg_box.setDefaultButton(save_btn)
+
+        msg_box.exec()
+        clicked = msg_box.clickedButton()
+
+        if clicked == cancel_btn:
             return
-        if res == QMessageBox.StandardButton.Save:
+        if clicked == save_btn:
             self._on_save()
         self.close_requested.emit()
 
