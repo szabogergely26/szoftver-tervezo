@@ -1,0 +1,17 @@
+Origin: Tervezo
+Label: Tervezo
+Suite: stable
+Codename: stable
+Architectures: all
+Components: main
+Description: APT repository for Tervezo
+Date: Tue, 28 Jul 2026 15:43:10 +0000
+MD5Sum:
+ c1766aae60f6449578be8dcbf14e9d0a              632 main/binary-all/Packages
+ d2c95dcb4c65b87d70c49b0a5efc5291              463 main/binary-all/Packages.gz
+SHA1:
+ e760103d7cfbd1d6aaf1deaa0c6f419c421035f7              632 main/binary-all/Packages
+ e39ac655a27963b38b13d5f3e06dab9789a31118              463 main/binary-all/Packages.gz
+SHA256:
+ 5876e903cf93ee8b0898572588f947c2c69ec5e8cc7c6f4f989f33e2fb477f94              632 main/binary-all/Packages
+ 92f872e10e95e862a9b0a5051d9e831ecf6f814e58d981b75b0c99ded7f2e08d              463 main/binary-all/Packages.gz
