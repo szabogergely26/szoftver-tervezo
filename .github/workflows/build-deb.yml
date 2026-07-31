@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-deb:
     runs-on: ubuntu-latest
@@ -38,3 +41,16 @@ jobs:
         with:
           name: tervezo-deb
           path: artifacts/*.deb
+
+      - name: Prepare release file (fixed name, no version)
+        run: |
+          cp "$(find artifacts -maxdepth 1 -type f -name '*.deb' -print -quit)" artifacts/Szoftver-tervezo.deb
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "Legfrissebb build"
+          files: artifacts/Szoftver-tervezo.deb
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
