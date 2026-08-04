@@ -21,5 +21,5 @@ SETTINGS_FILE = USER_DATA_DIR / "settings.json"
 
 # ---------- Verzió / kiadási csatorna ----------
 
-APP_VERSION = "0.2.0"
-BUILD_CHANNEL = "dev"
+APP_VERSION = "0.3.0"
+BUILD_CHANNEL = "Stable"

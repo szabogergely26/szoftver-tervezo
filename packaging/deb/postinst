@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+
+SRC_DIR="/usr/share/tervezo/apt-repo-setup"
+
+mkdir -p /usr/share/keyrings
+cp -f "$SRC_DIR/tervezo-archive-keyring.gpg" /usr/share/keyrings/tervezo-archive-keyring.gpg
+
+mkdir -p /etc/apt/sources.list.d
+cp -f "$SRC_DIR/tervezo.sources" /etc/apt/sources.list.d/tervezo.sources
+
+mkdir -p /etc/apt/preferences.d
+cp -f "$SRC_DIR/tervezo.pref" /etc/apt/preferences.d/tervezo.pref
+
+exit 0

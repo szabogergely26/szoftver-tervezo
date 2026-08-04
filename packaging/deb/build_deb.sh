@@ -2,7 +2,7 @@
 set -euo pipefail
 
 PACKAGE_NAME="tervezo"
-VERSION="0.2.0"
+VERSION="0.3.0"
 ARCH="all"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -48,18 +48,27 @@ fi
 
 cp "$SCRIPT_DIR/control" "$DEBIAN_DIR/control"
 
-chmod 755 "$PACKAGE_DIR/usr/bin/$PACKAGE_NAME"
+# Szoftverforrás (APT repo) automatikus regisztrálásához szükséges fájlok
+mkdir -p "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/apt-repo-setup"
+cp "$SCRIPT_DIR/../apt/tervezo-archive-keyring.gpg" "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/apt-repo-setup/"
+cp "$SCRIPT_DIR/../apt/tervezo.sources" "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/apt-repo-setup/"
+cp "$SCRIPT_DIR/../apt/tervezo.pref" "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/apt-repo-setup/"
+
+cp "$SCRIPT_DIR/postinst" "$DEBIAN_DIR/postinst"
 
 # Python cache-fájlok eltávolítása a csomagból
 find "$PACKAGE_DIR" -type d -name "__pycache__" -prune -exec rm -rf {} +
 find "$PACKAGE_DIR" -type f -name "*.pyc" -delete
 
-
-# Egységes jogosultságok, hogy telepítés után bárki olvashassa/futtathassa
+# Egységes jogosultságok, hogy telepítés után bárki olvashassa/futtathassa.
+# FONTOS: ez az EGYETLEN olyan blokk, ami jogosultságot állít, és ez fut le
+# UTOLJÁRA a dpkg-deb --build előtt -- ha bármi mást ide adsz hozzá a jövőben,
+# ami fájlt másol be a csomagba, a chmod-oknak ez után kell jönniük, különben
+# a "find ... chmod 644" felülírja a futtathatósági jogokat.
 find "$PACKAGE_DIR" -type d -exec chmod 755 {} \;
 find "$PACKAGE_DIR" -type f -exec chmod 644 {} \;
 chmod 755 "$PACKAGE_DIR/usr/bin/$PACKAGE_NAME"
-
+chmod 755 "$DEBIAN_DIR/postinst"
 
 OUTPUT_FILE="$DIST_DIR/${PACKAGE_NAME}_${VERSION}_${ARCH}.deb"
 dpkg-deb --root-owner-group --build "$PACKAGE_DIR" "$OUTPUT_FILE"
