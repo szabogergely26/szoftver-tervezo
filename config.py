@@ -2,7 +2,10 @@
 
 from pathlib import Path
 
-from version_info import APP_VERSION, BUILD_CHANNEL
+from version_info import (  # noqa: F401  (re-export a hívóknak)
+    APP_VERSION,
+    BUILD_CHANNEL,
+)
 
 # ---------- Program (csak olvasható, telepített) útvonalak ----------
 
@@ -27,5 +30,6 @@ else:
     USER_DATA_DIR = Path.home() / ".config" / "szoftvertervezo"
 
 USER_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
 
 SETTINGS_FILE = USER_DATA_DIR / "settings.json"

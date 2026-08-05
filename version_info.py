@@ -9,5 +9,5 @@ Build/branch-váltás után ELLENŐRIZD a config.py-t is: a BUILD_CHANNEL
 gyökere alatti Projektek/, egyébként: ~/.config/szoftvertervezo/).
 """
 
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.3.0"
 BUILD_CHANNEL = "dev"  # "dev" | "preview" | "main"

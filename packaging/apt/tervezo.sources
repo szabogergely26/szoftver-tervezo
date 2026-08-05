@@ -1,0 +1,6 @@
+Types: deb
+URIs: https://szabogergely26.github.io/szoftver-tervezo/
+Suites: stable
+Components: main
+Architectures: all
+Signed-By: /usr/share/keyrings/tervezo-archive-keyring.gpg
