@@ -90,7 +90,7 @@ class Storage:
 
         # feladatok.json a varázsló vesszővel elválasztott listájából
         tasks = [
-            TaskItem(id=i, html=text, done=False)
+            TaskItem(id=i, title=text, html=text)
             for i, text in enumerate(self.parse_task_list(initial_tasks_raw), start=1)
         ]
         self.write_tasks(project_dir, tasks)
