@@ -41,3 +41,5 @@ Projektek/
 # Szoftver által tárolt beállítások
 settings.json
 
+# Naplófájlok
+*.log
