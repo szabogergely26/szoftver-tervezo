@@ -27,7 +27,7 @@ jobs:
           chmod +x packaging/deb/build_deb.sh
 
       # A build_deb.sh a Tervező projektben ezt hozza létre:
-      # dist/tervezo_0.2.0_all.deb
+      # dist/tervezo_all.deb
       - name: Build deb package
         run: |
           ./packaging/deb/build_deb.sh
@@ -43,9 +43,9 @@ jobs:
           BINARY_DIR="$DIST_DIR/main/binary-all"
 
           # FONTOS ELTÉRÉS a Pénzügyi Naplótól: itt "dist", nem "build".
-          DEB_FILE="$(find packaging/deb/dist -maxdepth 1 -type f -name "${PACKAGE_NAME}_*_all.deb" -print -quit)"
+          DEB_FILE="packaging/deb/dist/tervezo_all.deb"
 
-          if [ -z "$DEB_FILE" ]; then
+          if [ ! -f "$DEB_FILE" ]; then
             echo "Nem található .deb fájl a dist mappában."
             exit 1
           fi
