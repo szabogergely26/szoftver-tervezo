@@ -10,4 +10,4 @@ gyökere alatti Projektek/, egyébként: ~/.config/szoftvertervezo/).
 """
 
 APP_VERSION = "0.3.1"
-BUILD_CHANNEL = "dev"  # "dev" | "preview" | "main"
+BUILD_CHANNEL = "main"  # "dev" | "preview" | "main"
