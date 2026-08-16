@@ -1,13 +1,13 @@
 Package: tervezo
-Version: 0.3.0
+Version: 0.3.1
 Architecture: all
 Maintainer: Szabó Gergely <szabogergely26@gmail.com>
 Depends: python3, python3-pyside6.qtcore, python3-pyside6.qtgui, python3-pyside6.qtwidgets
-Filename: pool/main/t/tervezo/tervezo_0.3.0_all.deb
-Size: 57024
-MD5sum: 26d41347ee816dc13634fdd0d12464c3
-SHA1: f2ed434afa08770044ca21839b6a6b51ba91339b
-SHA256: ed1b27e69fca9b7a31f1fe8fa6813746f40405c0cd29ee4ec0a076bc76170d16
+Filename: pool/main/t/tervezo/tervezo_all.deb
+Size: 58830
+MD5sum: d6b58591a738ef328372c8f7a246698f
+SHA1: e163180a0fb13d8f51728bbf5de6891f9d5f4de8
+SHA256: 2c96c7a865e0316d43406bcd41276e1c9322412868888e41946a579dd1ac776d
 Section: utils
 Priority: optional
 Description: Saját fejlesztésű projekt-tervező alkalmazás
