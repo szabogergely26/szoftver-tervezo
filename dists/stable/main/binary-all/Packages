@@ -4,10 +4,10 @@ Architecture: all
 Maintainer: Szabó Gergely <szabogergely26@gmail.com>
 Depends: python3, python3-pyside6.qtcore, python3-pyside6.qtgui, python3-pyside6.qtwidgets
 Filename: pool/main/t/tervezo/tervezo_all.deb
-Size: 59134
-MD5sum: e31f4fbeed69e10c5676639e726c2ada
-SHA1: 96be2b619a4224afd4f7cb2b5352fab0fe7b2194
-SHA256: 007a81ba255c8539790df04eac5c8f8d091797c3cb49b2c8f0e20b603f335577
+Size: 59636
+MD5sum: 44504bacc046d18fa0e6466b9a517a37
+SHA1: 9a9e492a65759b405c5a9ad2c7462cd1ad12fb59
+SHA256: 48a51d753ce6fb98ab7818c35b51ce94fb0a2574931d94baf4142dcad9561b9d
 Section: utils
 Priority: optional
 Description: Saját fejlesztésű projekt-tervező alkalmazás
