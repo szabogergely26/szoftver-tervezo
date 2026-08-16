@@ -79,7 +79,7 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "widgets.task_title_label": {"hu": "Cím:", "en": "Title:"},
 
     # ----------- Főablak ---------------
-    "main.window_title": {"hu": "Tervező", "en": "Designer"},
+    "main.window_title": {"hu": "Szoftver-Tervező", "en": "Software-Designer"},
     "main.menu.file": {"hu": "Fájl", "en": "File"},
     "main.menu.help": {"hu": "Súgó", "en": "Help"},
     "main.action.new_project": {"hu": "Új projekt", "en": "New project"},
