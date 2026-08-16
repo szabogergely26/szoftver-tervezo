@@ -43,3 +43,8 @@ settings.json
 
 # Naplófájlok
 *.log
+
+# Tömörített fájlok
+*.zip
+*.tar.gz
+*.7zip
