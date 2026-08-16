@@ -55,7 +55,16 @@ class ProjectCard(QFrame):
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setObjectName("ProjectCard")
-        self.setStyleSheet("#ProjectCard { border: 1px solid #ccc; }")
+        self.setStyleSheet(
+            "#ProjectCard {"
+            "  background-color: #ffffff;"
+            "  border: 1px solid #d0d3d9;"
+            "  border-radius: 8px;"
+            "}"
+            "#ProjectCard:hover {"
+            "  border-color: #3b82f6;"
+            "}"
+        )
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(8, 8, 8, 8)
