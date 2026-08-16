@@ -35,6 +35,7 @@ mkdir -p "$PACKAGE_DIR/usr/share/doc/$PACKAGE_NAME"
 
 cp -a "$PROJECT_DIR/main.py" "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/"
 cp -a "$PROJECT_DIR/config.py" "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/"
+cp -a "$PROJECT_DIR/version_info.py" "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/"
 cp -a "$PROJECT_DIR/tervezo" "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/"
 cp -a "$PROJECT_DIR/settings" "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/"
 cp -a "$PROJECT_DIR/assets" "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/" 2>/dev/null || true
