@@ -49,6 +49,22 @@ if [[ -f "$ICON_SRC" ]]; then
     cp "$ICON_SRC" "$ICON_DEST/$PACKAGE_NAME.png"
 fi
 
+# build_info.py beégetése statikus tartalommal (a build pillanatában érvényes
+# commit hash + dátum) - a telepített csomagban NEM lesz .git mappa, ezért a
+# forrásbeli build_info.py élő git-lekérdezős fallbackja itt nem működne.
+BUILD_COMMIT="$(cd "$PROJECT_DIR" && git rev-parse --short HEAD 2>/dev/null || echo "ismeretlen")"
+BUILD_DATE="$(cd "$PROJECT_DIR" && git log -1 --format=%cd --date=short 2>/dev/null || echo "ismeretlen")"
+cat > "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/build_info.py" <<EOF
+"""Build-időben generált fájl - build_deb.sh írta felül, ne szerkeszd kézzel."""
+
+BUILD_COMMIT: str = "$BUILD_COMMIT"
+BUILD_DATE: str = "$BUILD_DATE"
+EOF
+
+
+
+
+
 cp "$SCRIPT_DIR/control" "$DEBIAN_DIR/control"
 
 # Szoftverforrás (APT repo) automatikus regisztrálásához szükséges fájlok

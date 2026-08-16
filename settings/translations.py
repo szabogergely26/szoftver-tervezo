@@ -165,7 +165,15 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "about.channel_dev": {"hu": "Fejlesztői build (DEV)", "en": "Development build (DEV)"},
     "about.channel_preview": {"hu": "Előzetes build (Preview)", "en": "Preview build"},
     "about.channel_stable": {"hu": "Stabil kiadás", "en": "Stable release"},
-
+    "about.developer": {"hu": "Fejlesztő: {name}", "en": "Developer: {name}"},
+    "about.build_info": {
+        "hu": "Build: {commit} ({date})",
+        "en": "Build: {commit} ({date})",
+    },
+    "about.tech_info": {
+        "hu": "Python {python_version} · PySide6 {pyside_version}",
+        "en": "Python {python_version} · PySide6 {pyside_version}",
+    },
 
 
 

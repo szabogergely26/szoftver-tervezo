@@ -2,6 +2,10 @@
 
 from pathlib import Path
 
+from build_info import (  # noqa: F401  (re-export a hívóknak)
+    BUILD_COMMIT,
+    BUILD_DATE,
+)
 from version_info import (  # noqa: F401  (re-export a hívóknak)
     APP_VERSION,
     BUILD_CHANNEL,
