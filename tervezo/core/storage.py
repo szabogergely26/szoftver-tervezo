@@ -6,7 +6,7 @@ import shutil
 from datetime import date
 from pathlib import Path
 
-from .models import Project, ProjectStatus, TaskItem
+from .models import Project, ProjectStatus, TaskItem, TaskStatus
 
 PROJECT_FILE = "project.json"
 TASKS_FILE = "feladatok.json"
@@ -177,7 +177,7 @@ class Storage:
         tasks = self.read_tasks(project_dir)
         for t in tasks:
             if t.id == task_id:
-                t.done = done
+                t.status = TaskStatus.DONE if done else TaskStatus.PENDING
                 break
         self.write_tasks(project_dir, tasks)
 
