@@ -14,21 +14,20 @@ from PySide6.QtWidgets import QApplication
 
 from config import APP_VERSION, BUILD_CHANNEL, ICON_PATH
 from settings import apply_saved_language
-from tervezo.ui.main_window import MainWindow
-
 from settings.settings import get_log_level
 from tervezo.core.app_logging import (
+    CRASH_LOG,
     LOG_DIR,
     LOG_FILE,
     log_header,
     log_raw,
     logging,
     setup_logging,
-    CRASH_LOG,
 )
+from tervezo.ui.main_window import MainWindow
 
 LOG_DIR.mkdir(parents=True, exist_ok=True)
-faulthandler.enable(file=open(CRASH_LOG, "a"))
+faulthandler.enable(file=open(CRASH_LOG, "a"))  # noqa: SIM115 (a program teljes futása alatt nyitva kell maradnia)
 
 setup_logging(get_log_level())
 

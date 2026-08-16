@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 from datetime import datetime
-
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QPixmap
-
 from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
@@ -26,14 +24,17 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from config import ASSETS_DIR
+from settings.translations import tr
+
 from ..core.models import ProjectStatus, TaskItem, TaskStatus
 from ..core.storage import Storage
-from .widgets import MilestoneDialog, TaskEditDialog, TaskRowWidget, build_richtext_toolbar
-from settings.translations import tr
-from config import ASSETS_DIR
-
-
-
+from .widgets import (
+    MilestoneDialog,
+    TaskEditDialog,
+    TaskRowWidget,
+    build_richtext_toolbar,
+)
 
 
 class ProjectDetailsWidget(QWidget):
@@ -522,7 +523,7 @@ class ProjectDetailsWidget(QWidget):
         msg_box.setText(tr("project.close_confirm_text"))
 
         save_btn = msg_box.addButton(tr("common.save"), QMessageBox.ButtonRole.AcceptRole)
-        discard_btn = msg_box.addButton(tr("project.close_discard_button"), QMessageBox.ButtonRole.DestructiveRole)
+        msg_box.addButton(tr("project.close_discard_button"), QMessageBox.ButtonRole.DestructiveRole)
         cancel_btn = msg_box.addButton(tr("common.cancel"), QMessageBox.ButtonRole.RejectRole)
         msg_box.setDefaultButton(save_btn)
 

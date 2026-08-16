@@ -1,14 +1,12 @@
 from __future__ import annotations
 
+import tempfile
+import zipfile
+from datetime import date
 from pathlib import Path
 
-import zipfile
-import tempfile
-from datetime import date
-
-
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QAction, QKeySequence, QIcon, QTextDocumentFragment
+from PySide6.QtGui import QAction, QIcon, QTextDocumentFragment
 from PySide6.QtWidgets import (
     QApplication,
     QDialog,
@@ -27,33 +25,26 @@ from PySide6.QtWidgets import (
     QWidgetAction,
 )
 
-from ..core.storage import Storage
-from ..core.workspace import Workspace
-from ..core.models import TaskStatus
-
-from .flow_layout import FlowLayout
-
-from .widgets import ProjectCard
-
-from .log_dialog import LogDialog
-from .about_dialog import AboutDialog
-from .new_project_dialog import NewProjectDialog
-from .project_dialog import ProjectDialog, ProjectDetailsWidget
-from .task_overview_popup import TaskOverviewPopup
-
 from config import ICON_PATH
-
 from settings.settings import (
-    SettingsDialog, 
+    SettingsDialog,
+    get_close_to_tray,
     get_project_view_mode,
     get_splitter_sizes,
     save_splitter_sizes,
-    load_settings,
-    save_settings,
-    get_close_to_tray,
 )
+from settings.translations import language_signal, tr
 
-from settings.translations import tr, language_signal
+from ..core.models import TaskStatus
+from ..core.storage import Storage
+from ..core.workspace import Workspace
+from .about_dialog import AboutDialog
+from .flow_layout import FlowLayout
+from .log_dialog import LogDialog
+from .new_project_dialog import NewProjectDialog
+from .project_dialog import ProjectDetailsWidget, ProjectDialog
+from .task_overview_popup import TaskOverviewPopup
+from .widgets import ProjectCard
 
 
 class MainWindow(QMainWindow):
@@ -458,7 +449,7 @@ class MainWindow(QMainWindow):
 
 
     def export_workspace(self) -> None:
-        default_name = f"Projektek_mentes_{date.today().strftime('%Y-%m-%d')}.zip"
+        default_name = f"Projektek_mentes_{date.today().strftime('%Y-%m-%d')}.zip"  # noqa: DTZ011 (helyi naptári dátum kell, nem UTC)
         path_str, _ = QFileDialog.getSaveFileName(
             self, tr("main.action.export_workspace"), default_name, "Zip fájlok (*.zip)"
         )

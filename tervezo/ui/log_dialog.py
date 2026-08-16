@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from tervezo.core.app_logging import LOG_FILE, qt_log_handler, CRASH_LOG
+from tervezo.core.app_logging import CRASH_LOG, LOG_FILE, qt_log_handler
 
 # Csak a szint-címke színe változik, a sor többi része alapszínű marad.
 LEVEL_COLORS = {

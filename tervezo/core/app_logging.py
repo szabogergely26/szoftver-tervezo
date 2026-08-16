@@ -12,11 +12,10 @@ from __future__ import annotations
 import logging
 import logging.handlers
 from datetime import datetime
-from pathlib import Path
 
 from PySide6.QtCore import QObject, Signal
 
-from config import USER_DATA_DIR, BUILD_CHANNEL
+from config import BUILD_CHANNEL, USER_DATA_DIR
 
 LOG_DIR = USER_DATA_DIR / "logs"
 LOG_FILE = LOG_DIR / "tervezo.log"

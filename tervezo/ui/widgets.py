@@ -3,7 +3,15 @@ from __future__ import annotations
 from datetime import date
 
 from PySide6.QtCore import QSize, Qt, QTimer, Signal
-from PySide6.QtGui import QAction, QBrush, QColor, QIcon, QPainter, QPixmap, QTextCharFormat
+from PySide6.QtGui import (
+    QAction,
+    QBrush,
+    QColor,
+    QIcon,
+    QPainter,
+    QPixmap,
+    QTextCharFormat,
+)
 from PySide6.QtWidgets import (
     QCheckBox,
     QColorDialog,
@@ -25,8 +33,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..core.models import Milestone, Project, TaskItem
 from settings.translations import tr
+
+from ..core.models import Milestone, Project, TaskItem
 
 CARD_WIDTH = 200
 CARD_HEIGHT = 220
@@ -113,7 +122,7 @@ class ProjectCard(QFrame):
                 )
             )
 
-    def mousePressEvent(self, event) -> None:  # noqa: N802 (Qt override)
+    def mousePressEvent(self, event) -> None:
         # FONTOS: a super() hívás előrébb van, mint az emit — ha a kattintás
         # egy modális dialógust nyit meg, ami közben (pl. Mentésre) törli ezt
         # a kártyát (reload_cards -> deleteLater), akkor a dialógus bezárása
@@ -230,7 +239,7 @@ class MilestoneDialog(QDialog):
         layout = QFormLayout(self)
 
         default_date = (
-            milestone.date if milestone else date.today().strftime("%Y.%m.%d")
+            milestone.date if milestone else date.today().strftime("%Y.%m.%d")  # noqa: DTZ011 (helyi naptári dátum kell, nem UTC)
         )
         self.date_edit = QLineEdit(default_date)
         self.date_edit.setPlaceholderText(tr("common.date_placeholder"))
@@ -480,7 +489,7 @@ def build_richtext_toolbar(target: QTextEdit, parent: QWidget) -> QToolBar:
     color_menu.addAction(act_pick_color)
     color_btn.setMenu(color_menu)
 
-    def apply_text_color(checked: bool) -> None:  # noqa: ARG001 (Qt signal aláírás)
+    def apply_text_color(checked: bool) -> None:
         # a betűszínnek nincs "kikapcsolt" állapota — a gomb testére kattintva
         # mindig az utoljára használt/kiválasztott színt alkalmazzuk újra
         set_char_format(color=state["text_color"])

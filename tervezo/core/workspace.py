@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import shutil
 import zipfile
-
 from pathlib import Path
 
 from config import USER_DATA_DIR

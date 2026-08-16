@@ -14,10 +14,11 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from settings.translations import tr
+
 from ..core.models import TaskStatus
 from ..core.storage import Storage
 from ..core.workspace import Workspace
-from settings.translations import tr
 
 
 class TaskOverviewPopup(QFrame):

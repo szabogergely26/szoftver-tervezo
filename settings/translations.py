@@ -242,10 +242,6 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     },
 
 
-    "project.delete_confirm_text": {
-        "hu": "Biztosan törlöd a(z) „{name}” projektet és minden tartalmát?\n\nEz nem vonható vissza.",
-        "en": "Are you sure you want to delete the project “{name}” and all its contents?\n\nThis cannot be undone.",
-    },
     "project.close_confirm_title": {
         "hu": "Mentetlen módosítások",
         "en": "Unsaved changes",
