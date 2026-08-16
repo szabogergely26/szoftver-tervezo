@@ -192,15 +192,14 @@ class TaskRowWidget(QWidget):
             layout.addWidget(done_label)
 
         self.label = QLabel()
-        self.label.setTextFormat(Qt.TextFormat.RichText)
-        self.label.setText(task.html)
+        self.label.setText(task.title)
         self.label.setWordWrap(True)
         layout.addWidget(self.label, 1)
 
         if mode != "done":
-            edit_btn = QPushButton(tr("common.edit"))
-            edit_btn.clicked.connect(lambda: self.edit_requested.emit(self.task_id))
-            layout.addWidget(edit_btn)
+            details_btn = QPushButton(tr("common.details"))
+            details_btn.clicked.connect(lambda: self.edit_requested.emit(self.task_id))
+            layout.addWidget(details_btn)
 
             delete_btn = QPushButton(tr("common.delete"))
             delete_btn.clicked.connect(lambda: self.delete_requested.emit(self.task_id))
@@ -265,12 +264,17 @@ class MilestoneDialog(QDialog):
 class TaskEditDialog(QDialog):
     """Egy feladat gazdag-szöveges (HTML) tartalmának szerkesztése."""
 
-    def __init__(self, parent: QWidget | None = None, html: str = ""):
+    def __init__(self, parent: QWidget | None = None, title: str = "", html: str = ""):
         super().__init__(parent)
         self.setWindowTitle(tr("widgets.task_edit_title"))
-        self.resize(420, 220)
+        self.resize(420, 320)
 
         layout = QVBoxLayout(self)
+
+        form = QFormLayout()
+        self.title_edit = QLineEdit(title)
+        form.addRow(tr("widgets.task_title_label"), self.title_edit)
+        layout.addLayout(form)
 
         self.editor = QTextEdit()
         self.editor.setHtml(html)
@@ -286,8 +290,26 @@ class TaskEditDialog(QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
+
+
+    def _on_accept(self) -> None:
+        if not self.title_edit.text().strip():
+            self.title_edit.setFocus()
+            return
+        self.accept()
+
+    def get_title(self) -> str:
+        return self.title_edit.text().strip()
+
+
     def get_html(self) -> str:
         return self.editor.toHtml()
+
+
+
+
+
+
 
 
 def _text_icon(

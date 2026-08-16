@@ -41,8 +41,13 @@ Projektek/
 # Szoftver által tárolt beállítások
 settings.json
 
+
+# Szoftver által tárolt beállítások
+settings.json
+
 # Naplófájlok
 *.log
+logs/
 
 # Tömörített fájlok
 *.zip

@@ -77,11 +77,14 @@ class TaskStatus(Enum):
 class TaskItem:
     """Egy feladat-sor a 'Következő' / 'Folyamatban' / 'Elkészült' listákban.
 
-    A `html` mező rich-text tartalmat hordoz (félkövér, szín, stb.),
-    ezért nem sima `text: str`.
+    A `title` a listákban megjelenő rövid cím (sima szöveg).
+    A `html` mező a részletes, gazdag-szöveges (rich-text) leírás,
+    amit a "Részletek" dialógus mutat/szerkeszt.
+
     """
 
     id: int
+    title: str
     html: str
     status: TaskStatus = TaskStatus.PENDING
     completed_at:  str | None = None
@@ -89,6 +92,7 @@ class TaskItem:
     def to_dict(self) -> dict:
         return {
             "id": self.id, 
+            "title": self.title,
             "html": self.html, 
             "status": self.status.value,
             "completed_at": self.completed_at,
@@ -103,9 +107,20 @@ class TaskItem:
         else:
             status = TaskStatus.DONE if data.get("done") else TaskStatus.PENDING
 
+        # Visszafelé kompatibilitás: a régi mentésekben nincs 'title', csak
+        # 'html' — ilyenkor a html-ből nyerjük ki az egyszerű szöveget,
+        # hogy a listákban legyen mit mutatni migráció után is.
+        html = data.get("html", "")
+        if "title" in data:
+            title = data["title"]
+        else:
+            from PySide6.QtGui import QTextDocumentFragment
+            title = QTextDocumentFragment.fromHtml(html).toPlainText().strip() or "…"
+
         return TaskItem(
-            id=data["id"], 
-            html=data.get("html", ""), 
+            id=data["id"],
+            title=title,
+            html=html,
             status=status,
             completed_at=data.get("completed_at"),
         )

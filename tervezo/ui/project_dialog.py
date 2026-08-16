@@ -386,11 +386,23 @@ class ProjectDetailsWidget(QWidget):
 
 
     def _on_add_task(self) -> None:
-        text = self.new_task_edit.text().strip()
-        if not text:
+        title = self.new_task_edit.text().strip()
+        if not title:
             return
+        
+        dlg = TaskEditDialog(self, title=title)
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+
         new_id = self.storage.next_task_id(self.tasks)
-        self.tasks.append(TaskItem(id=new_id, html=text, status=TaskStatus.PENDING))
+        self.tasks.append(
+            TaskItem(
+                id=new_id,
+                title=dlg.get_title(),
+                html=dlg.get_html(),
+                status=TaskStatus.PENDING,
+            )
+        )
         self.new_task_edit.clear()
         self._reload_tasks()
 
@@ -416,8 +428,9 @@ class ProjectDetailsWidget(QWidget):
         task = next((t for t in self.tasks if t.id == task_id), None)
         if not task:
             return
-        dlg = TaskEditDialog(self, html=task.html)
+        dlg = TaskEditDialog(self, title=task.title, html=task.html)
         if dlg.exec() == QDialog.DialogCode.Accepted:
+            task.title = dlg.get_title()
             task.html = dlg.get_html()
             self._reload_tasks()
 

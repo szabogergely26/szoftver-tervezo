@@ -1,10 +1,14 @@
 from __future__ import annotations
 
+import logging
 import shutil
 import zipfile
+
 from pathlib import Path
 
 from config import USER_DATA_DIR
+
+logger = logging.getLogger(__name__)
 
 class Workspace:
     def __init__(self):
@@ -13,6 +17,8 @@ class Workspace:
 
         self.projects_dir = self.root / "projects"
         self.inbox_dir = self.root / "inbox"
+
+        logger.info("Projektek innen töltődnek: %s", self.projects_dir.resolve())
 
     def ensure(self) -> None:
         self.root.mkdir(exist_ok=True)

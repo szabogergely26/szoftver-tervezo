@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QScrollArea,
     QSplitter,
+    QStatusBar,
     QSystemTrayIcon,
     QToolBar,
     QVBoxLayout,
@@ -38,6 +39,7 @@ from .log_dialog import LogDialog
 from .about_dialog import AboutDialog
 from .new_project_dialog import NewProjectDialog
 from .project_dialog import ProjectDialog, ProjectDetailsWidget
+from .task_overview_popup import TaskOverviewPopup
 
 from config import ICON_PATH
 
@@ -69,6 +71,7 @@ class MainWindow(QMainWindow):
         self._build_ui()
         self._build_menu()
         self._build_toolbar()
+        self._build_status_bar()
         self.retranslate_ui()
 
         self._apply_view_mode_visibility()
@@ -372,6 +375,34 @@ class MainWindow(QMainWindow):
         self.act_new_project_toolbar.triggered.connect(self.new_project)
         self.toolbar.addAction(self.act_new_project_toolbar)
 
+
+
+    def _build_status_bar(self) -> None:
+        self.status_bar = QStatusBar()
+        self.status_bar.setStyleSheet("QStatusBar { border-top: 1px solid palette(mid); }")
+        self.setStatusBar(self.status_bar)
+
+        self.next_task_label = QLabel()
+        self.next_task_label.setStyleSheet("padding: 0 6px;")
+        self.next_task_label.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.next_task_label.mousePressEvent = self._show_task_overview_popup
+
+
+        self.status_bar.addPermanentWidget(self.next_task_label)
+
+
+    def _show_task_overview_popup(self, event) -> None:
+        popup = TaskOverviewPopup(self.storage, self.ws, self)
+        popup.project_open_requested.connect(self._open_project_in_dialog)
+
+        pos = self.next_task_label.mapToGlobal(self.next_task_label.rect().topRight())
+        pos.setX(pos.x() - popup.sizeHint().width())
+        pos.setY(pos.y() - popup.sizeHint().height())
+        popup.move(pos)
+        popup.show()
+
+
+
     # ---------- Nyelv ----------
     def _on_language_changed(self, _lang_code: str) -> None:
         self.retranslate_ui()
@@ -394,6 +425,7 @@ class MainWindow(QMainWindow):
 
         self.toolbar.setWindowTitle(tr("main.toolbar.name"))
         self.act_new_project_toolbar.setText(tr("main.action.new_project_toolbar"))
+        self.next_task_label.setText(tr("main.status_bar.next_task"))
 
     # ---------- Kártyák ----------
     def reload_cards(self) -> None:

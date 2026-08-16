@@ -75,6 +75,8 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "common.date_placeholder": {"hu": "ÉÉÉÉ.HH.NN", "en": "YYYY.MM.DD"},
     "common.exists_title": {"hu": "Létezik", "en": "Already exists"},
     "project.close_discard_button": {"hu": "Elvetés", "en": "Discard"},
+    "common.details": {"hu": "Részletek", "en": "Details"},
+    "widgets.task_title_label": {"hu": "Cím:", "en": "Title:"},
 
     # ----------- Főablak ---------------
     "main.window_title": {"hu": "Tervező", "en": "Designer"},
@@ -82,6 +84,7 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "main.menu.help": {"hu": "Súgó", "en": "Help"},
     "main.action.new_project": {"hu": "Új projekt", "en": "New project"},
     "main.action.new_project_toolbar": {"hu": "+ Új projekt", "en": "+ New project"},
+    "main.status_bar.next_task": {"hu": "Következő feladat", "en": "Next task"},
 
     # --- Megnyitás / Mentés / Beállítások
     "main.action.open": {"hu": "Megnyitás", "en": "Open"},
@@ -291,12 +294,13 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "main.tray.next": {"hu": "Következő feladatok", "en": "Next Tasks"},
     "main.tray.empty": {"hu": "Nincs ilyen feladat", "en": "There is no such Task"},
     "main.tray.minimized_message": {"hu": "Kicsinyítve", "en": "Minimized"},
-    "general.close_to_tray": {"hu": "Bezáráskor tálcára kicsinyítés (kilépés helyett)", "en": "Minimize to tray on close (instead of quitting)"}
+    "general.close_to_tray": {"hu": "Bezáráskor tálcára kicsinyítés (kilépés helyett)", "en": "Minimize to tray on close (instead of quitting)"},
 
 
 
 
-
+    # --- Status bar ---
+    "main.status_bar.popup_empty": {"hu": "Nincs hátralévő feladat.", "en": "No remaining tasks."},
 
 
 

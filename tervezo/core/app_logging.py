@@ -16,11 +16,17 @@ from pathlib import Path
 
 from PySide6.QtCore import QObject, Signal
 
-from config import USER_DATA_DIR
+from config import USER_DATA_DIR, BUILD_CHANNEL
 
 LOG_DIR = USER_DATA_DIR / "logs"
 LOG_FILE = LOG_DIR / "tervezo.log"
 CRASH_LOG = LOG_DIR / "crash.log"
+
+# main ágon (éles, telepített kiadás) nem írunk konzolra - ott nincs
+# aki nézze, és csak szemetelne egy esetleges terminálba. dev/preview
+# ágon viszont kényelmesebb, ha a log a konzolon is megjelenik, nem
+# csak a fájlban / LogDialog-ban.
+_LOG_TO_CONSOLE = BUILD_CHANNEL != "main"
 
 
 class _LogSignalEmitter(QObject):
@@ -52,11 +58,12 @@ class QtLogHandler(logging.Handler):
 qt_log_handler = QtLogHandler()
 
 _file_handler: logging.handlers.RotatingFileHandler | None = None
+_console_handler: logging.StreamHandler | None = None
 
 
 def setup_logging(level: int = logging.INFO) -> None:
     """Egyszer, induláskor hívandó (main.py-ból)."""
-    global _file_handler
+    global _file_handler, _console_handler
 
     LOG_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -79,6 +86,12 @@ def setup_logging(level: int = logging.INFO) -> None:
     root.addHandler(_file_handler)
     root.addHandler(qt_log_handler)
 
+    if _LOG_TO_CONSOLE:
+        _console_handler = logging.StreamHandler()
+        _console_handler.setFormatter(formatter)
+        _console_handler.setLevel(level)
+        root.addHandler(_console_handler)
+
 
 def set_log_level(level: int) -> None:
     """UI-ból hívva állítja a minimum szintet - ettől kezdve ez a szint
@@ -86,6 +99,8 @@ def set_log_level(level: int) -> None:
     qt_log_handler.setLevel(level)
     if _file_handler is not None:
         _file_handler.setLevel(level)
+    if _console_handler is not None:
+        _console_handler.setLevel(level)
 
 
 def _write_raw(text: str) -> None:
@@ -95,6 +110,8 @@ def _write_raw(text: str) -> None:
         _file_handler.stream.write(text + "\n")
         _file_handler.flush()
     qt_log_handler.log_record.emit(text, logging.INFO)
+    if _LOG_TO_CONSOLE:
+        print(text)
 
 
 def log_raw(text: str) -> None:

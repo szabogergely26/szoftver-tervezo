@@ -19,10 +19,12 @@ echo "Projekt könyvtár: $PROJECT_DIR/"
 echo "Csomag neve: $PACKAGE_NAME"
 echo "Verzió: $VERSION"
 
+
 rm -rf "$BUILD_DIR"
 mkdir -p "$PACKAGE_DIR"
 mkdir -p "$DEBIAN_DIR"
 mkdir -p "$DIST_DIR"
+rm -f "$DIST_DIR"/*.deb
 
 # Alap root fájlok (launcher, .desktop) másolása
 cp -a "$ROOT_DIR/." "$PACKAGE_DIR/"
@@ -70,7 +72,7 @@ find "$PACKAGE_DIR" -type f -exec chmod 644 {} \;
 chmod 755 "$PACKAGE_DIR/usr/bin/$PACKAGE_NAME"
 chmod 755 "$DEBIAN_DIR/postinst"
 
-OUTPUT_FILE="$DIST_DIR/${PACKAGE_NAME}_${VERSION}_${ARCH}.deb"
+OUTPUT_FILE="$DIST_DIR/${PACKAGE_NAME}_${ARCH}.deb"
 dpkg-deb --root-owner-group --build "$PACKAGE_DIR" "$OUTPUT_FILE"
 
 echo
