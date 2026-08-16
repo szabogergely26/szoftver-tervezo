@@ -307,7 +307,10 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "main.status_bar.popup_empty": {"hu": "Nincs hátralévő feladat.", "en": "No remaining tasks."},
 
 
-
+    "main.status_bar.popup_title": {
+    "hu": "Következő feladatok",
+    "en": "Upcoming tasks",
+    },
 
 
 

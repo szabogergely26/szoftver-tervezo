@@ -4,9 +4,11 @@ from datetime import datetime
 from pathlib import Path
 
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QCheckBox,
     QFrame,
+    QGraphicsDropShadowEffect,
     QHBoxLayout,
     QLabel,
     QScrollArea,
@@ -33,6 +35,12 @@ class TaskOverviewPopup(QFrame):
 
     project_open_requested = Signal(object, int)  # (project_dir, tab_index)
 
+    # A shadow-nak "levegő" kell a top-level ablakon belül, különben a
+    # blur/offset a window szélén levágódik (a QGraphicsDropShadowEffect
+    # nem rajzolhat a widget saját bounding rect-jén túlra).
+    SHADOW_MARGIN = 24
+    SHADOW_Y_OFFSET = 4
+
     def __init__(
         self,
         storage: Storage,
@@ -43,18 +51,48 @@ class TaskOverviewPopup(QFrame):
         self.storage = storage
         self.workspace = workspace
 
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setObjectName("TaskOverviewPopup")
-        self.setFrameShape(QFrame.Shape.StyledPanel)
-        self.setMinimumWidth(280)
-        self.setMaximumHeight(420)
 
         outer = QVBoxLayout(self)
-        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setContentsMargins(
+            self.SHADOW_MARGIN,
+            self.SHADOW_MARGIN,
+            self.SHADOW_MARGIN,
+            self.SHADOW_MARGIN + self.SHADOW_Y_OFFSET,
+        )
+
+        # A tényleges lekerekített doboz egy belső kártya-widget: az
+        # árnyék erre kerül, nem a (margó nélküli) top-level ablakra.
+        self._card = QFrame(self)
+        self._card.setObjectName("TaskOverviewCard")
+        self._card.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self._card.setMinimumWidth(280)
+        self._card.setMaximumHeight(420)
+        outer.addWidget(self._card)
+
+        shadow = QGraphicsDropShadowEffect(self._card)
+        shadow.setBlurRadius(self.SHADOW_MARGIN)
+        shadow.setXOffset(0)
+        shadow.setYOffset(self.SHADOW_Y_OFFSET)
+        shadow.setColor(QColor(0, 0, 0, 60))
+        self._card.setGraphicsEffect(shadow)
+
+        card_layout = QVBoxLayout(self._card)
+        card_layout.setContentsMargins(0, 0, 0, 0)
+        card_layout.setSpacing(0)
+
+        # Saját, belső "címsor" a natív Popup ablak-típus miatt (annak
+        # nincs OS-szintű díszítése/címsora).
+        header = QLabel(tr("main.status_bar.popup_title"))
+        header.setObjectName("TaskOverviewHeader")
+        header.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        card_layout.addWidget(header)
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
-        outer.addWidget(scroll)
+        card_layout.addWidget(scroll)
 
         self._content = QWidget()
         self._layout = QVBoxLayout(self._content)
@@ -105,8 +143,11 @@ class TaskOverviewPopup(QFrame):
 
     def _build_task_row(self, project_dir: Path, task) -> QWidget:
         row = QWidget()
+        row.setObjectName("TaskOverviewRow")
+        row.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        row.setAttribute(Qt.WidgetAttribute.WA_Hover, True)
         row_layout = QHBoxLayout(row)
-        row_layout.setContentsMargins(0, 2, 0, 2)
+        row_layout.setContentsMargins(6, 2, 6, 2)
 
         checkbox = QCheckBox()
         checkbox.setChecked(False)

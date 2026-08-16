@@ -1,0 +1,431 @@
+/* ============================================================
+   Tervező – világos téma
+   Letisztult, halvány szürke-kék alapon semleges szürke/fekete accent színnel.
+   ============================================================ */
+
+* {
+    outline: none;
+}
+
+QWidget {
+    background-color: #f5f6f8;
+    color: #202225;
+    font-size: 13px;
+}
+
+/* ---------- Fő ablak / dialógusok ---------- */
+
+QMainWindow, QDialog {
+    background-color: #f5f6f8;
+}
+
+/* ---------- Gombok ---------- */
+
+QPushButton {
+    background-color: #ffffff;
+    border: 1px solid #d0d3d9;
+    border-radius: 6px;
+    padding: 6px 14px;
+    color: #202225;
+}
+
+QPushButton:hover {
+    background-color: #eef2f8;
+    border-color: #b9c2d0;
+}
+
+QPushButton:pressed {
+    background-color: #e2e8f2;
+}
+
+QPushButton:disabled {
+    color: #a8adb5;
+    background-color: #f0f1f3;
+    border-color: #e0e2e6;
+}
+
+QPushButton:default {
+    background-color: #2c2e33;
+    border-color: #2c2e33;
+    color: #ffffff;
+}
+
+QPushButton:default:hover {
+    background-color: #1f2024;
+    border-color: #1f2024;
+}
+
+QPushButton:default:pressed {
+    background-color: #131416;
+}
+
+/* ---------- Beviteli mezők ---------- */
+
+QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QDateEdit, QDateTimeEdit {
+    background-color: #ffffff;
+    border: 1px solid #d0d3d9;
+    border-radius: 6px;
+    padding: 4px 8px;
+    selection-background-color: #e4e5e8;
+    selection-color: #1a1a1a;
+}
+
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus,
+QSpinBox:focus, QDoubleSpinBox:focus, QDateEdit:focus, QDateTimeEdit:focus {
+    border: 1px solid #8a8d95;
+}
+
+QLineEdit:disabled, QTextEdit:disabled, QPlainTextEdit:disabled {
+    background-color: #f0f1f3;
+    color: #a8adb5;
+}
+
+/* ---------- ComboBox ---------- */
+
+QComboBox {
+    background-color: #ffffff;
+    border: 1px solid #d0d3d9;
+    border-radius: 6px;
+    padding: 4px 8px;
+}
+
+QComboBox:hover {
+    border-color: #b9c2d0;
+}
+
+QComboBox:focus {
+    border: 1px solid #8a8d95;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 22px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #ffffff;
+    border: 1px solid #d0d3d9;
+    selection-background-color: #e4e5e8;
+    selection-color: #1a1a1a;
+    outline: none;
+}
+
+/* ---------- CheckBox / RadioButton ---------- */
+
+QCheckBox, QRadioButton {
+    spacing: 8px;
+}
+
+QCheckBox::indicator, QRadioButton::indicator {
+    width: 16px;
+    height: 16px;
+    border: 1px solid #c2c6cd;
+    background-color: #ffffff;
+}
+
+QCheckBox::indicator {
+    border-radius: 4px;
+}
+
+QRadioButton::indicator {
+    border-radius: 8px;
+}
+
+QCheckBox::indicator:hover, QRadioButton::indicator:hover {
+    border-color: #8a8d95;
+}
+
+QCheckBox::indicator:checked, QRadioButton::indicator:checked {
+    background-color: #2c2e33;
+    border-color: #2c2e33;
+}
+
+/* ---------- Listák / fák / táblázatok ---------- */
+
+QListWidget, QTreeWidget, QTableWidget, QListView, QTreeView, QTableView {
+    background-color: #ffffff;
+    border: 1px solid #d0d3d9;
+    border-radius: 6px;
+    alternate-background-color: #f7f8fa;
+}
+
+QListWidget::item, QTreeWidget::item, QTableWidget::item {
+    padding: 4px;
+}
+
+QListWidget::item:selected, QTreeWidget::item:selected, QTableWidget::item:selected,
+QListView::item:selected, QTreeView::item:selected, QTableView::item:selected {
+    background-color: #e4e5e8;
+    color: #1a1a1a;
+}
+
+QListWidget::item:hover, QTreeWidget::item:hover, QTableWidget::item:hover {
+    background-color: #f2f3f5;
+}
+
+/* A Beállítások bal oldali kategória-fája navigációs jellegű, nem
+   adatlista - halványabb kijelölést kap, mint az általános fák/listák. */
+#SettingsCategoryTree::item:selected {
+    background-color: #e4e5e8;
+    color: #1a1a1a;
+    border-radius: 4px;
+}
+
+#SettingsCategoryTree::item:hover {
+    background-color: #f2f3f5;
+}
+
+QHeaderView::section {
+    background-color: #eef0f3;
+    border: none;
+    border-bottom: 1px solid #d0d3d9;
+    padding: 6px;
+    font-weight: 600;
+}
+
+/* ---------- Tabok ---------- */
+
+QTabWidget::pane {
+    border: 1px solid #d0d3d9;
+    border-radius: 6px;
+    background-color: #ffffff;
+    top: -1px;
+}
+
+QTabBar::tab {
+    background-color: #eef0f3;
+    border: 1px solid #d0d3d9;
+    border-bottom: none;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    padding: 6px 14px;
+    margin-right: 2px;
+}
+
+QTabBar::tab:selected {
+    background-color: #ffffff;
+    font-weight: 600;
+}
+
+QTabBar::tab:hover:!selected {
+    background-color: #e2e8f2;
+}
+
+/* ---------- ScrollBar ---------- */
+
+QScrollBar:vertical {
+    background: transparent;
+    width: 10px;
+    margin: 0;
+}
+
+QScrollBar::handle:vertical {
+    background: #c2c6cd;
+    border-radius: 5px;
+    min-height: 24px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #a8adb5;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0;
+}
+
+QScrollBar:horizontal {
+    background: transparent;
+    height: 10px;
+    margin: 0;
+}
+
+QScrollBar::handle:horizontal {
+    background: #c2c6cd;
+    border-radius: 5px;
+    min-width: 24px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #a8adb5;
+}
+
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+    width: 0;
+}
+
+/* ---------- GroupBox ---------- */
+
+QGroupBox {
+    border: 1px solid #d0d3d9;
+    border-radius: 6px;
+    margin-top: 12px;
+    padding-top: 8px;
+    font-weight: 600;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 4px;
+}
+
+/* ---------- MenuBar / Menu ---------- */
+
+QMenuBar {
+    background-color: #e9ebef;
+    border-bottom: 1px solid #d0d3d9;
+    padding: 2px 4px;
+}
+
+QMenuBar::item {
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+QMenuBar::item:selected {
+    background-color: #d5deee;
+}
+
+/*------- Menüpont kijelölése*/
+
+QMenuBar::item:pressed {
+    background-color: #e4e5e8;
+    color: #1a1a1a;
+}
+
+QMenu {
+    background-color: #ffffff;
+    border: 1px solid #d0d3d9;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+QMenu::item {
+    padding: 6px 24px 6px 12px;
+    border-radius: 4px;
+}
+
+QMenu::item:selected {
+    background-color: #e4e5e8;
+    color: #1a1a1a;
+}
+
+QMenu::separator {
+    height: 1px;
+    background: #e0e2e6;
+    margin: 4px 8px;
+}
+
+/* ---------- StatusBar ---------- */
+
+QStatusBar {
+    background-color: #e9ebef;
+    border-top: 1px solid #d0d8e2;
+    padding: 2px 4px;
+}
+
+#NextTaskLabel:hover {
+    background-color: #d5deee;
+}
+
+/* ---------- ToolBar ---------- */
+
+QToolBar {
+    background-color: #e9ebef;
+    border: none;
+    border-bottom: 1px solid #d0d3d9;
+    spacing: 4px;
+    padding: 6px 8px;
+}
+
+QToolButton {
+    border-radius: 6px;
+    padding: 4px 8px;
+}
+
+QToolButton:hover {
+    background-color: #d5deee;
+}
+
+QToolButton:pressed {
+    background-color: #c5d2e8;
+}
+
+/* ---------- Splitter ---------- */
+
+QSplitter::handle {
+    background-color: #e0e2e6;
+}
+
+QSplitter::handle:horizontal {
+    width: 2px;
+}
+
+QSplitter::handle:vertical {
+    height: 2px;
+}
+
+/* ---------- ProgressBar ---------- */
+
+QProgressBar {
+    background-color: #ffffff;
+    border: 1px solid #d0d3d9;
+    border-radius: 6px;
+    text-align: center;
+}
+
+QProgressBar::chunk {
+    background-color: #2c2e33;
+    border-radius: 5px;
+}
+
+
+
+/* ---------- Feladat-áttekintő popup (statusbar) ---------- */
+
+#TaskOverviewPopup {
+    background-color: transparent;
+    border: none;
+}
+
+#TaskOverviewCard {
+    background-color: #ffffff;
+    border: 1px solid #d0d3d9;
+    border-radius: 8px;
+}
+
+
+
+#TaskOverviewHeader {
+    background-color: #c3c8d3;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+
+
+#TaskOverviewRow {
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+}
+
+#TaskOverviewRow:hover {
+    background-color: #c7ccd6;
+    border: 1px solid transparent;
+}
+
+
+
+/* ---------- ToolTip ---------- */
+
+QToolTip {
+    background-color: #202225;
+    color: #ffffff;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
