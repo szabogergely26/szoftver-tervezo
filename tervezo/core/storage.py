@@ -194,7 +194,7 @@ class Storage:
 
     def today_header_marker(self) -> str:
         """A mai dátum-fejléc szövege, ÉÉÉÉ.HH.NN formátumban (idő nélkül)."""
-        return date.today().strftime("%Y.%m.%d")
+        return date.today().strftime("%Y.%m.%d")  # noqa: DTZ011 (helyi naptári dátum kell, nem UTC)
 
     def has_today_header(self, html: str) -> bool:
         """Van-e már mai dátumú fejléc a naplóban (duplikáció elkerülése)."""
