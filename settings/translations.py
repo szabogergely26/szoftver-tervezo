@@ -253,7 +253,11 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
 
 
 
-
+    # --- Lebegő szín-magyarázó eszköztár -----
+    "status_legend.collapse": {"hu": "Összecsukás", "en": "Collapse"},
+    "status_legend.expand": {"hu": "Kibontás", "en": "Expand"},
+    "status_legend.close": {"hu": "Elrejtés", "en": "Hide"},
+    "main.action.show_status_legend": {"hu": "Színmagyarázat mutatása", "en": "Show color legend"},
 
 
 

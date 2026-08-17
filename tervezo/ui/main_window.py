@@ -43,6 +43,7 @@ from .flow_layout import FlowLayout
 from .log_dialog import LogDialog
 from .new_project_dialog import NewProjectDialog
 from .project_dialog import ProjectDetailsWidget, ProjectDialog
+from .status_legend_widget import StatusLegendWidget
 from .task_overview_popup import TaskOverviewPopup
 from .widgets import ProjectCard
 
@@ -52,7 +53,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self._log_dialog: LogDialog | None = None
         self.setWindowIcon(QIcon(str(ICON_PATH)))
-        self.resize(1100, 720)
+        self.resize(1100, 720)  # Ha valamiért a showMaximized() nem működik, legalább legyen egy normális kezdeti méret.
+        
 
         self.storage = Storage()
         self.ws = Workspace()
@@ -112,6 +114,14 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.splitter)
 
+        self.status_legend = StatusLegendWidget(self)
+        self.status_legend.closed.connect(self._on_status_legend_closed)
+        self.status_legend.show()
+        # A pozíció (ha nincs elmentett) az alsó sarokhoz igazodik – ezt csak
+        # azután érdemes véglegesíteni, hogy a MainWindow felvette a végleges
+        # (pl. maximalizált) méretét, ezért egy körrel később futtatjuk.
+        QTimer.singleShot(0, self.status_legend._clamp_into_parent)
+
 
     def _reset_sidebar_placeholder(self) -> None:
         while self.details_layout.count():
@@ -133,6 +143,12 @@ class MainWindow(QMainWindow):
         is_sidebar_mode = get_project_view_mode() == "sidebar"
         self.details_panel.setVisible(is_sidebar_mode)
 
+
+
+    def resizeEvent(self, event) -> None:
+        super().resizeEvent(event)
+        if hasattr(self, "status_legend"):
+            self.status_legend._clamp_into_parent()
 
 
     def _on_splitter_moved(self, _pos: int, _index: int) -> None:
@@ -367,6 +383,11 @@ class MainWindow(QMainWindow):
         self.toolbar.addAction(self.act_new_project_toolbar)
 
 
+        self.act_show_status_legend = QAction(QIcon.fromTheme("view-visible"), "", self)
+        self.act_show_status_legend.triggered.connect(self._show_status_legend)
+        self.act_show_status_legend.setVisible(False)  # csak akkor látszik, ha a legend el van rejtve
+        self.toolbar.addAction(self.act_show_status_legend)
+
 
     def _build_status_bar(self) -> None:
         self.status_bar = QStatusBar()
@@ -400,6 +421,13 @@ class MainWindow(QMainWindow):
         popup.show()
 
 
+    def _on_status_legend_closed(self) -> None:
+        self.act_show_status_legend.setVisible(True)
+
+    def _show_status_legend(self) -> None:
+        self.status_legend.show_and_raise()
+        self.act_show_status_legend.setVisible(False)
+
 
     # ---------- Nyelv ----------
     def _on_language_changed(self, _lang_code: str) -> None:
@@ -424,6 +452,9 @@ class MainWindow(QMainWindow):
         self.toolbar.setWindowTitle(tr("main.toolbar.name"))
         self.act_new_project_toolbar.setText(tr("main.action.new_project_toolbar"))
         self.next_task_label.setText(tr("main.status_bar.next_task"))
+
+        self.act_show_status_legend.setText(tr("main.action.show_status_legend"))
+        self.status_legend.retranslate_ui()
 
     # ---------- Kártyák ----------
     def reload_cards(self) -> None:
