@@ -186,15 +186,14 @@ class StatusLegendWidget(QFrame):
         if self._drag_offset is not None and event.buttons() & Qt.MouseButton.LeftButton:
             new_pos = self.mapToParent(event.position().toPoint() - self._drag_offset)
             self.move(new_pos)
+            # Csak tényleges elmozduláskor (nem puszta kattintáskor) számít
+            # "kézzel mozgatottnak" - innentől nem követi automatikusan
+            # a szülő átméretezését.
+            self._user_moved = True
         super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
-            if self._drag_offset is not None:
-                # Csak akkor számít "kézzel mozgatottnak", ha ténylegesen
-                # húzás történt - egy sima kattintás (pl. a gombokra) ne
-                # kapcsolja ki az automatikus alsó-sarok-követést.
-                self._user_moved = True
             self._drag_offset = None
             self.setCursor(Qt.CursorShape.OpenHandCursor)
             self._clamp_into_parent()
