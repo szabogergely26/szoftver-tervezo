@@ -2,7 +2,6 @@
 set -euo pipefail
 
 PACKAGE_NAME="tervezo"
-VERSION="0.4.0"
 ARCH="all"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -17,6 +16,8 @@ DEBIAN_DIR="$PACKAGE_DIR/DEBIAN"
 
 echo "Projekt könyvtár: $PROJECT_DIR/"
 echo "Csomag neve: $PACKAGE_NAME"
+
+VERSION="$(python3 -c "import sys; sys.path.insert(0, '$PROJECT_DIR'); from version_info import APP_VERSION; print(APP_VERSION)")"
 echo "Verzió: $VERSION"
 
 
@@ -65,7 +66,7 @@ EOF
 
 
 
-cp "$SCRIPT_DIR/control" "$DEBIAN_DIR/control"
+sed "s/\${VERSION}/$VERSION/" "$SCRIPT_DIR/control.in" > "$DEBIAN_DIR/control"
 
 # Szoftverforrás (APT repo) automatikus regisztrálásához szükséges fájlok
 mkdir -p "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/apt-repo-setup"
