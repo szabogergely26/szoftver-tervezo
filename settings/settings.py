@@ -133,6 +133,7 @@ class SettingsDialog(QDialog):
 
         # --- Bal oldal: kategória-fa (kinyitható/becsukható csoportokkal) ---
         self.category_tree = QTreeWidget()
+        self.category_tree.setObjectName("SettingsCategoryTree")
         self.category_tree.setHeaderHidden(True)
         self.category_tree.setFixedWidth(180)
         content_layout.addWidget(self.category_tree)
