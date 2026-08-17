@@ -18,4 +18,4 @@ A 0.4.1 csak akkor jönne, ha a 0.4.0 kiadása UTÁN derülne ki egy hiba, amit 
 """
 
 APP_VERSION = "0.5.0"
-BUILD_CHANNEL = "preview"  # "dev" | "preview" | "main"
+BUILD_CHANNEL = "main"  # "dev" | "preview" | "main"
