@@ -71,3 +71,7 @@ Hátralévő / tervezett feladatok:
 ## Licenc
 
 GPL-3.0-or-later
+
+## Mi hol van a projektbe?
+
+MainWindow címe - a program neve: `settings\translations.py`

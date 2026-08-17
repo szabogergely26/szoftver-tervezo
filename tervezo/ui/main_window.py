@@ -370,25 +370,32 @@ class MainWindow(QMainWindow):
 
     def _build_status_bar(self) -> None:
         self.status_bar = QStatusBar()
-        self.status_bar.setStyleSheet("QStatusBar { border-top: 1px solid palette(mid); }")
         self.setStatusBar(self.status_bar)
 
         self.next_task_label = QLabel()
-        self.next_task_label.setStyleSheet("padding: 0 6px;")
+        self.next_task_label.setObjectName("NextTaskLabel")
+        self.next_task_label.setStyleSheet(
+            "padding: 2px 8px; border-radius: 4px;"
+        )
         self.next_task_label.setCursor(Qt.CursorShape.PointingHandCursor)
         self.next_task_label.mousePressEvent = self._show_task_overview_popup
 
-
         self.status_bar.addPermanentWidget(self.next_task_label)
 
+
+        
 
     def _show_task_overview_popup(self, event) -> None:
         popup = TaskOverviewPopup(self.storage, self.ws, self)
         popup.project_open_requested.connect(self._open_project_in_dialog)
 
+        # A popup a shadow számára margót tartalmaz a látható kártya körül,
+        # ezért a pozíciót ezzel a margóval korrigáljuk, hogy a kártya
+        # vizuálisan ugyanoda kerüljön, mint a margó bevezetése előtt.
+        margin = popup.SHADOW_MARGIN
         pos = self.next_task_label.mapToGlobal(self.next_task_label.rect().topRight())
-        pos.setX(pos.x() - popup.sizeHint().width())
-        pos.setY(pos.y() - popup.sizeHint().height())
+        pos.setX(pos.x() - popup.sizeHint().width() + margin)
+        pos.setY(pos.y() - popup.sizeHint().height() + margin)
         popup.move(pos)
         popup.show()
 

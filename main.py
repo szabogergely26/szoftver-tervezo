@@ -25,6 +25,7 @@ from tervezo.core.app_logging import (
     setup_logging,
 )
 from tervezo.ui.main_window import MainWindow
+from tervezo.ui.theme import apply_theme
 
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 faulthandler.enable(file=open(CRASH_LOG, "a"))  # noqa: SIM115 (a program teljes futása alatt nyitva kell maradnia)
@@ -46,6 +47,9 @@ def main() -> int:
     app.setQuitOnLastWindowClosed(False)
 
     logging.info("QApplication létrejött")
+
+    apply_theme(app, "light")
+    logging.info("Téma alkalmazva")
 
     app.setWindowIcon(QIcon(str(ICON_PATH)))  # ez adja a tálca-/taskbar-ikont
     

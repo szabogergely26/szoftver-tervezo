@@ -128,7 +128,11 @@ class ProjectDetailsWidget(QWidget):
         self.cover_preview = QLabel()
         self.cover_preview.setFixedSize(120, 90)
         self.cover_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.cover_preview.setStyleSheet("border: 1px solid #999; background: #222; color: #888;")
+        self.cover_preview.setStyleSheet(
+            "border: 1px solid #d0d3d9; border-radius: 6px;"
+            "background-color: #eef0f3; color: #888;"
+        )
+        
         cover_row.addWidget(self.cover_preview)
 
         cover_buttons = QVBoxLayout()
