@@ -2,7 +2,7 @@
 set -euo pipefail
 
 PACKAGE_NAME="tervezo"
-VERSION="0.3.1"
+VERSION="0.4.0"
 ARCH="all"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
