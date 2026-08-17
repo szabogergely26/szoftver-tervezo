@@ -5,13 +5,13 @@ Codename: stable
 Architectures: all
 Components: main
 Description: APT repository for Tervezo
-Date: Mon, 17 Aug 2026 05:51:34 +0000
+Date: Mon, 17 Aug 2026 08:10:42 +0000
 MD5Sum:
- cd54dc8e1f7b841c80e066a1c4b49e6e              626 main/binary-all/Packages
- e218062258f24754febf0895e9f1143e              460 main/binary-all/Packages.gz
+ dfabe70a87e419425c50116911b943ff              626 main/binary-all/Packages
+ 09f43d18e63b43ceed339425ac416d16              458 main/binary-all/Packages.gz
 SHA1:
- 2c216bd9f4ac361a5c9cc26980322101cd545f73              626 main/binary-all/Packages
- 91d4f8a048455b0994a9c5cf2d3c5ffa6029c425              460 main/binary-all/Packages.gz
+ 46c576dbfe365f11a78a7236a2af032b0f5d282a              626 main/binary-all/Packages
+ 86a33e0b2e65e568006f7a0bb70059a8d1576666              458 main/binary-all/Packages.gz
 SHA256:
- 3638828f8ed3896c3a95b0b9cf2729fbe56044c8733adc1809419117df2d292f              626 main/binary-all/Packages
- a79ed9f8be14261db9a91ba0afdff44d9452b7fcd42eb1436229a89f0f455cfa              460 main/binary-all/Packages.gz
+ 89a39b3ba87f3c93f7adc07fe6d116a3d6fd4ad96c9f07ea380660c73d4aa9dc              626 main/binary-all/Packages
+ 820892c51796abdfaa03ed0db895f781deec3a4787689dea0f1a734078f22953              458 main/binary-all/Packages.gz
