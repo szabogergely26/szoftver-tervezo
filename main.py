@@ -44,6 +44,8 @@ logging.info(f"Verzió: {APP_VERSION}")
 
 def main() -> int:
     app = QApplication(sys.argv)
+    app.setOrganizationName("Tervezo")
+    app.setApplicationName("Tervezo")
     app.setQuitOnLastWindowClosed(False)
 
     logging.info("QApplication létrejött")
@@ -61,7 +63,7 @@ def main() -> int:
 
     win = MainWindow()
     logging.info("MainWindow létrejött, show() hívás előtt")
-    win.show()
+    win.showMaximized()
     logging.info("show() hívás megtörtént, eseményhurok indul")
     return app.exec()
 
