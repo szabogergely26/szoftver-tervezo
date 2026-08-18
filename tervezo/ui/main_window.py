@@ -40,6 +40,7 @@ from ..core.storage import Storage
 from ..core.workspace import Workspace
 from .about_dialog import AboutDialog
 from .flow_layout import FlowLayout
+from .in_progress_task_label import InProgressTaskLabel
 from .log_dialog import LogDialog
 from .new_project_dialog import NewProjectDialog
 from .project_dialog import ProjectDetailsWidget, ProjectDialog
@@ -393,6 +394,13 @@ class MainWindow(QMainWindow):
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
 
+        # "Folyamatban: <Projekt> - <Feladat>" — projektfüggetlen, ciklikusan
+        # lapozó widget, csak akkor látszik, ha van IN_PROGRESS feladat.
+        self.in_progress_label = InProgressTaskLabel(self.storage, self.ws, self)
+        self.in_progress_label.project_open_requested.connect(self._open_project_in_dialog)
+        self.status_bar.addPermanentWidget(self.in_progress_label)
+        self.in_progress_label.refresh()
+
         self.next_task_label = QLabel()
         self.next_task_label.setObjectName("NextTaskLabel")
         self.next_task_label.setStyleSheet(
@@ -409,6 +417,7 @@ class MainWindow(QMainWindow):
     def _show_task_overview_popup(self, event) -> None:
         popup = TaskOverviewPopup(self.storage, self.ws, self)
         popup.project_open_requested.connect(self._open_project_in_dialog)
+        popup.task_changed.connect(self.in_progress_label.refresh)
 
         # A popup a shadow számára margót tartalmaz a látható kártya körül,
         # ezért a pozíciót ezzel a margóval korrigáljuk, hogy a kártya
@@ -456,8 +465,13 @@ class MainWindow(QMainWindow):
         self.act_show_status_legend.setText(tr("main.action.show_status_legend"))
         self.status_legend.retranslate_ui()
 
+        self.in_progress_label.refresh()
+
     # ---------- Kártyák ----------
     def reload_cards(self) -> None:
+        if hasattr(self, "in_progress_label"):
+            self.in_progress_label.refresh()
+
         while self.flow_layout.count():
             item = self.flow_layout.takeAt(0)
             widget = item.widget() if item else None
@@ -626,3 +640,4 @@ class MainWindow(QMainWindow):
             return
 
         self.reload_cards()
+        

@@ -316,6 +316,7 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "en": "Upcoming tasks",
     },
 
+    "main.status_bar.in_progress": {"hu": "Folyamatban:", "en" : "In progress"},
 
 
 
