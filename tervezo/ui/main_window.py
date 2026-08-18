@@ -125,6 +125,8 @@ class MainWindow(QMainWindow):
 
 
     def _reset_sidebar_placeholder(self) -> None:
+        self._sidebar_details = None
+
         while self.details_layout.count():
             item = self.details_layout.takeAt(0)
             if item is None:
@@ -319,6 +321,14 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event) -> None:
         if self._force_quit or not get_close_to_tray():
+            # Csak akkor tényleges kilépés (nem tálcára-küldés), itt kell
+            # rákérdezni az esetlegesen nyitott, mentetlen oldalsáv-tartalomra
+            # — tálcára küldéskor ("close_to_tray") az app életben marad,
+            # a nyitott projekt is megmarad, nincs mit elveszíteni.
+            if not self._sidebar_confirm_discard():
+                self._force_quit = False
+                event.ignore()
+                return
             self.tray_icon.hide()
             event.accept()
             return
@@ -592,7 +602,22 @@ class MainWindow(QMainWindow):
         dlg.project_deleted.connect(lambda: QTimer.singleShot(0, self.reload_cards))
         dlg.exec()
 
+
+
+    def _sidebar_confirm_discard(self) -> bool:
+        """Ha az oldalsávban van nyitott, mentetlen változást tartalmazó
+        projekt, rákérdez, mielőtt elveszítenénk (projektváltás vagy
+        app-bezárás). True: szabad folytatni, False: a felhasználó
+        Mégse-t választott, maradjon minden a jelenlegi állapotban."""
+        details = getattr(self, "_sidebar_details", None)
+        if details is None:
+            return True
+        return details.confirm_close()
+
     def _open_project_in_sidebar(self, project_dir: Path) -> None:
+        if not self._sidebar_confirm_discard():
+            return
+
         while self.details_layout.count():
             item = self.details_layout.takeAt(0)
             if item is None:
@@ -604,7 +629,8 @@ class MainWindow(QMainWindow):
         details = ProjectDetailsWidget(
             self.storage, project_dir, self.details_panel, show_close_button=False
         )
-        
+        self._sidebar_details = details
+
         details.project_changed.connect(lambda: QTimer.singleShot(0, self.reload_cards))
         details.project_deleted.connect(lambda: QTimer.singleShot(0, self.reload_cards))
         details.project_deleted.connect(lambda: QTimer.singleShot(0, self._reset_sidebar_placeholder))
@@ -640,4 +666,3 @@ class MainWindow(QMainWindow):
             return
 
         self.reload_cards()
-        

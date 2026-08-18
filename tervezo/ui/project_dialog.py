@@ -1,7 +1,18 @@
+"""
+def confirm_close(self) -> bool: függvényeben belül:
+
+# DEBUG: mentetlen állapot esetén megmutatja, melyik snapshot-rész változott.
+        # Hibakereséshez ideiglenesen visszakapcsolható.
+        # print("=== SIDEBAR DIRTY ===")
+        .....
+        .....     
+"""
+
 from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
+
 
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtGui import QPixmap
@@ -104,9 +115,17 @@ class ProjectDetailsWidget(QWidget):
 
         layout.addLayout(button_row)
 
+        # A QTextEdit.toHtml() nem feltétlen ad ugyanolyan szöveget egy
+        # frissen setHtml()-lel betöltött, még nem "normalizált" dokumentumon,
+        # mint egy már egyszer toHtml()-en átment dokumentumon (pl. px -> pt
+        # mértékegység-átírás, <br/> becsomagolása <span>-be). Ha ezt nem
+        # vesszük figyelembe, a bezáráskor készülő snapshot mindig eltérne
+        # az induláskori baseline-tól, holott a felhasználó semmit nem
+        # módosított — ezért itt egyszer előre "áthajtjuk" a naplót ezen a
+        # normalizáláson, mielőtt a baseline snapshot-ot elkészítjük.
+        self.journal_editor.setHtml(self.journal_editor.toHtml())
 
         self._last_saved_snapshot = self._make_snapshot()
-
 
 
 
@@ -509,37 +528,97 @@ class ProjectDetailsWidget(QWidget):
         self._collect_project_from_form()
         return (
             self.project.to_dict(),
-            self.journal_editor.toHtml(),
+            self._journal_snapshot(),
             [t.to_dict() for t in self.tasks],
             self._pending_cover_path,
             self._pending_cover_removed,
         )
 
 
-    def _on_close_clicked(self) -> None:
-        if self._make_snapshot() == self._last_saved_snapshot:
-            self.close_requested.emit()
-            return
+    def confirm_close(self) -> bool:
+        """Megerősítő kérdés mentetlen változásra.
+
+        True: szabad bezárni / váltani (nem volt változás, vagy a
+        felhasználó Mentést vagy Elvetést választott).
+        False: a felhasználó Mégse-t választott, maradjon nyitva.
+
+        Ez a metódus a tényleges döntési logika, gombtól függetlenül —
+        hívja a "Bezárás" gomb (_on_close_clicked), a ProjectDialog
+        ablakkeret X gombja (closeEvent), és az oldalsáv nézet is
+        (projektváltáskor / app-bezáráskor).
+        """
+
+        #print(">>> confirm_close CALLED")    
+        # # A célja az volt, hogy lássuk:
+
+        # egyáltalán meghívódik-e a confirm_close(), és ha igen, hányszor.
+        
+        #traceback.print_stack(limit=8)       # Importáld ha kell a hívási lánc nyomkövetéséhez
+        # segítségével utána azt is meg tudtuk nézni, ki hívta meg.
+
+        current = self._make_snapshot()
+
+        if self._deleted:
+            return True
+
+        if current == self._last_saved_snapshot:
+            return True
+
+        # DEBUG: mentetlen állapot esetén megmutatja, melyik snapshot-rész változott.
+        # Hibakereséshez ideiglenesen visszakapcsolható.
+        # print("=== SIDEBAR DIRTY ===")
+        #
+        # labels = [
+        #     "project",
+        #     "journal",
+        #     "tasks",
+        #     "pending_cover_path",
+        #     "pending_cover_removed",
+        # ]
+        #
+        # for label, old, new in zip(
+        #     labels,
+        #     self._last_saved_snapshot,
+        #     current,
+        # ):
+        #     if old != new:
+        #         print(f"\n--- {label} CHANGED ---")
+        #         print("OLD:", repr(old))
+        #         print("NEW:", repr(new))
 
         msg_box = QMessageBox(self)
         msg_box.setIcon(QMessageBox.Icon.Question)
         msg_box.setWindowTitle(tr("project.close_confirm_title"))
         msg_box.setText(tr("project.close_confirm_text"))
 
-        save_btn = msg_box.addButton(tr("common.save"), QMessageBox.ButtonRole.AcceptRole)
-        msg_box.addButton(tr("project.close_discard_button"), QMessageBox.ButtonRole.DestructiveRole)
-        cancel_btn = msg_box.addButton(tr("common.cancel"), QMessageBox.ButtonRole.RejectRole)
+        save_btn = msg_box.addButton(
+            tr("common.save"),
+            QMessageBox.ButtonRole.AcceptRole,
+        )
+        msg_box.addButton(
+            tr("project.close_discard_button"),
+            QMessageBox.ButtonRole.DestructiveRole,
+        )
+        cancel_btn = msg_box.addButton(
+            tr("common.cancel"),
+            QMessageBox.ButtonRole.RejectRole,
+        )
         msg_box.setDefaultButton(save_btn)
 
         msg_box.exec()
         clicked = msg_box.clickedButton()
 
         if clicked == cancel_btn:
-            return
+            return False
+
         if clicked == save_btn:
             self._on_save()
-        self.close_requested.emit()
 
+        return True
+
+    def _on_close_clicked(self) -> None:
+        if self.confirm_close():
+            self.close_requested.emit()
 
     def _on_delete(self) -> None:
         buttons = QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
@@ -554,6 +633,48 @@ class ProjectDetailsWidget(QWidget):
         self.storage.delete_project(self.project.path)
         self._deleted = True
         self.project_deleted.emit()
+
+
+
+    def _journal_snapshot(self) -> tuple:
+        """Stabil snapshot a Napló tartalmáról és formázásáról."""
+        document = self.journal_editor.document()
+        blocks = []
+
+        block = document.begin()
+
+        while block.isValid():
+            fragments = []
+
+            iterator = block.begin()
+
+            while not iterator.atEnd():
+                fragment = iterator.fragment()
+
+                if fragment.isValid():
+                    char_format = fragment.charFormat()
+                    font = char_format.font()
+
+                    fragments.append(
+                        (
+                            fragment.text(),
+                            font.family(),
+                            font.pointSizeF(),
+                            font.bold(),
+                            font.italic(),
+                            font.underline(),
+                        )
+                    )
+                    
+
+                iterator += 1
+
+            blocks.append(tuple(fragments))
+            block = block.next()
+
+        return tuple(blocks)
+
+
 
 
 class ProjectDialog(QDialog):
@@ -585,3 +706,12 @@ class ProjectDialog(QDialog):
         self.details.project_deleted.connect(self.project_deleted)
         self.details.project_deleted.connect(self.accept)
         self.details.close_requested.connect(self.accept)
+
+    
+    def closeEvent(self, event) -> None:
+        """Az ablakkeret X gombja / Alt+F4 (nem Esc — az a reject()-en megy,
+        és szándékosan marad kérdés nélküli, csendes elvetés)."""
+        if self.details.confirm_close():
+            event.accept()
+        else:
+            event.ignore()
