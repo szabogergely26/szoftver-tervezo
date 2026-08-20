@@ -47,7 +47,7 @@ from .project_dialog import ProjectDetailsWidget, ProjectDialog
 from .status_legend_widget import StatusLegendWidget
 from .task_overview_popup import TaskOverviewPopup
 from .widgets import ProjectCard
-
+from tervezo.core.migrate_covers import migrate_absolute_covers
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -214,6 +214,10 @@ class MainWindow(QMainWindow):
         self.log_action.triggered.connect(self.open_log_dialog)
         self.tools_menu.addAction(self.log_action)
 
+        self.migrate_covers_action = QAction(QIcon.fromTheme("edit-copy"), "", self)
+        self.migrate_covers_action.triggered.connect(self.run_migrate_covers)
+        self.tools_menu.addAction(self.migrate_covers_action)
+
 
 
         # --- Súgó menü
@@ -354,6 +358,24 @@ class MainWindow(QMainWindow):
         self._log_dialog.raise_()
         self._log_dialog.activateWindow()
 
+
+
+
+    def run_migrate_covers(self) -> None:
+        migrated = migrate_absolute_covers(self.ws.projects_dir)
+
+        if not migrated:
+            QMessageBox.information(
+                self, "", "Nem található abszolút útvonalú borítókép — minden projekt rendben van."
+            )
+            return
+
+        QMessageBox.information(
+            self,
+            "",
+            "Migráció kész.\n\nÉrintett projektek:\n" + "\n".join(migrated),
+        )
+
     def _on_log_dialog_destroyed(self) -> None:
         self._log_dialog = None
 
@@ -474,6 +496,8 @@ class MainWindow(QMainWindow):
 
         self.act_show_status_legend.setText(tr("main.action.show_status_legend"))
         self.status_legend.retranslate_ui()
+
+        self.migrate_covers_action.setText(tr("menu.migrate_covers"))
 
         self.in_progress_label.refresh()
 
