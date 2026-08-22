@@ -49,13 +49,15 @@ from .task_overview_popup import TaskOverviewPopup
 from .widgets import ProjectCard
 from tervezo.core.migrate_covers import migrate_absolute_covers
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self._log_dialog: LogDialog | None = None
         self.setWindowIcon(QIcon(str(ICON_PATH)))
-        self.resize(1100, 720)  # Ha valamiért a showMaximized() nem működik, legalább legyen egy normális kezdeti méret.
-        
+        self.resize(
+            1100, 720
+        )  # Ha valamiért a showMaximized() nem működik, legalább legyen egy normális kezdeti méret.
 
         self.storage = Storage()
         self.ws = Workspace()
@@ -76,8 +78,6 @@ class MainWindow(QMainWindow):
 
         self._force_quit = False
         self._build_tray_icon()
-
-        
 
         language_signal.changed.connect(self._on_language_changed)
 
@@ -123,7 +123,6 @@ class MainWindow(QMainWindow):
         # (pl. maximalizált) méretét, ezért egy körrel később futtatjuk.
         QTimer.singleShot(0, self.status_legend._clamp_into_parent)
 
-
     def _reset_sidebar_placeholder(self) -> None:
         self._sidebar_details = None
 
@@ -140,19 +139,15 @@ class MainWindow(QMainWindow):
         placeholder.setWordWrap(True)
         self.details_layout.addWidget(placeholder)
 
-
     def _apply_view_mode_visibility(self) -> None:
         """A jobb oldali panel csak 'sidebar' nézetmódban látszódjon."""
         is_sidebar_mode = get_project_view_mode() == "sidebar"
         self.details_panel.setVisible(is_sidebar_mode)
 
-
-
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
         if hasattr(self, "status_legend"):
             self.status_legend._clamp_into_parent()
-
 
     def _on_splitter_moved(self, _pos: int, _index: int) -> None:
         # Csak akkor mentjük el, ha ténylegesen látszik az oldalsáv –
@@ -160,13 +155,6 @@ class MainWindow(QMainWindow):
         # egy "összement" (0 széles) állapotot.
         if self.details_panel.isVisible():
             save_splitter_sizes(self.splitter.sizes())
-
-
-
-
-
-
-
 
     # ---------- Menü ----------
     def _build_menu(self):
@@ -180,7 +168,6 @@ class MainWindow(QMainWindow):
         self.file_menu.addAction(self.new_project_action)
 
         self.file_menu.addSeparator()
-
 
         # --- Megnyitás / Mentés / Beállítások
         self.open_action = QAction(QIcon.fromTheme("document-open"), "", self)
@@ -198,7 +185,6 @@ class MainWindow(QMainWindow):
         self.settings_action.triggered.connect(self.open_settings)
         self.file_menu.addAction(self.settings_action)
 
-
         self.file_menu.addSeparator()
 
         # --- Kilépés
@@ -206,8 +192,7 @@ class MainWindow(QMainWindow):
         self.quit_action.triggered.connect(self._quit_app)
         self.file_menu.addAction(self.quit_action)
 
-
-         # --- Eszközök menü
+        # --- Eszközök menü
         self.tools_menu = self.menuBar().addMenu("")
 
         self.log_action = QAction(QIcon.fromTheme("utilities-log-viewer"), "", self)
@@ -218,17 +203,14 @@ class MainWindow(QMainWindow):
         self.migrate_covers_action.triggered.connect(self.run_migrate_covers)
         self.tools_menu.addAction(self.migrate_covers_action)
 
-
-
         # --- Súgó menü
         self.help_menu = self.menuBar().addMenu(tr("main.menu.help"))
 
-        self.about_action = QAction(QIcon.fromTheme("help-about"), tr("main.action.about"), self)
+        self.about_action = QAction(
+            QIcon.fromTheme("help-about"), tr("main.action.about"), self
+        )
         self.about_action.triggered.connect(self.open_about)
         self.help_menu.addAction(self.about_action)
-
-
-
 
     # --- Tálcaikon
     def _build_tray_icon(self) -> None:
@@ -262,7 +244,9 @@ class MainWindow(QMainWindow):
 
         self.tray_menu.addSeparator()
 
-        self._add_task_submenu(tr("main.tray.in_progress"), TaskStatus.IN_PROGRESS, tab_index=2)
+        self._add_task_submenu(
+            tr("main.tray.in_progress"), TaskStatus.IN_PROGRESS, tab_index=2
+        )
         self._add_task_submenu(tr("main.tray.next"), TaskStatus.PENDING, tab_index=1)
 
         self.tray_menu.addSeparator()
@@ -270,21 +254,15 @@ class MainWindow(QMainWindow):
         quit_action = self.tray_menu.addAction(tr("main.action.quit"))
         quit_action.triggered.connect(self._quit_app)
 
-
-    def _add_task_submenu(
-            self, 
-            title: str, 
-            status: TaskStatus,
-            tab_index: int
-
-        ) -> None:
-
+    def _add_task_submenu(self, title: str, status: TaskStatus, tab_index: int) -> None:
         submenu = self.tray_menu.addMenu(title)
         found_any = False
 
         for project_dir in self.storage.list_projects(self.ws.projects_dir):
             project = self.storage.read_project(project_dir)
-            tasks = [t for t in self.storage.read_tasks(project_dir) if t.status == status]
+            tasks = [
+                t for t in self.storage.read_tasks(project_dir) if t.status == status
+            ]
             if not tasks:
                 continue
 
@@ -294,17 +272,15 @@ class MainWindow(QMainWindow):
                 plain_text = QTextDocumentFragment.fromHtml(task.html).toPlainText()
                 action = project_menu.addAction(plain_text or "…")
                 action.triggered.connect(
-                    lambda checked=False, p=project_dir, i=tab_index: self._open_project_in_dialog(p, i)
+                    lambda checked=False,
+                    p=project_dir,
+                    i=tab_index: self._open_project_in_dialog(p, i)
                 )
 
         if not found_any:
             empty_action = submenu.addAction(tr("main.tray.empty"))
             empty_action.setEnabled(False)
 
-
-
-
-    
     def _add_readonly_menu_label(self, menu: QMenu, text: str) -> None:
         """Csak megjelenítő, nem kattintható menütétel – jól olvasható, egyedi színnel."""
         label = QLabel(text)
@@ -348,49 +324,39 @@ class MainWindow(QMainWindow):
 
     # --- Tálcaikon: vége --------
 
-
-
     def open_log_dialog(self) -> None:
-        if  self._log_dialog is None:
+        if self._log_dialog is None:
             self._log_dialog = LogDialog(self)
             self._log_dialog.destroyed.connect(self._on_log_dialog_destroyed)
         self._log_dialog.show()
         self._log_dialog.raise_()
         self._log_dialog.activateWindow()
 
-
-
-
     def run_migrate_covers(self) -> None:
         migrated = migrate_absolute_covers(self.ws.projects_dir)
 
         if not migrated:
             QMessageBox.information(
-                self, "", "Nem található abszolút útvonalú borítókép — minden projekt rendben van."
+                self,
+                tr("main.migrate_covers.title"),
+                tr("main.migrate_covers.none_found_text"),
             )
             return
 
         QMessageBox.information(
             self,
-            "",
-            "Migráció kész.\n\nÉrintett projektek:\n" + "\n".join(migrated),
+            tr("main.migrate_covers.title"),
+            tr("main.migrate_covers.done_text").format(names="\n".join(migrated)),
         )
+
+        self.reload_cards()
 
     def _on_log_dialog_destroyed(self) -> None:
         self._log_dialog = None
 
-
     def open_about(self) -> None:
         dialog = AboutDialog(self)
         dialog.exec()
-
-
-    
-
-
-
-
-
 
     def open_settings(self) -> None:
         dialog = SettingsDialog(self)
@@ -407,20 +373,20 @@ class MainWindow(QMainWindow):
         self.toolbar.setMovable(False)
         self.addToolBar(self.toolbar)
 
-        self.toolbar.setToolButtonStyle(
-            Qt.ToolButtonStyle.ToolButtonTextBesideIcon
-        )
+        self.toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
 
-        self.act_new_project_toolbar = QAction(QIcon.fromTheme("document-new"), "", self)
+        self.act_new_project_toolbar = QAction(
+            QIcon.fromTheme("document-new"), "", self
+        )
         self.act_new_project_toolbar.triggered.connect(self.new_project)
         self.toolbar.addAction(self.act_new_project_toolbar)
 
-
         self.act_show_status_legend = QAction(QIcon.fromTheme("view-visible"), "", self)
         self.act_show_status_legend.triggered.connect(self._show_status_legend)
-        self.act_show_status_legend.setVisible(False)  # csak akkor látszik, ha a legend el van rejtve
+        self.act_show_status_legend.setVisible(
+            False
+        )  # csak akkor látszik, ha a legend el van rejtve
         self.toolbar.addAction(self.act_show_status_legend)
-
 
     def _build_status_bar(self) -> None:
         self.status_bar = QStatusBar()
@@ -429,22 +395,19 @@ class MainWindow(QMainWindow):
         # "Folyamatban: <Projekt> - <Feladat>" — projektfüggetlen, ciklikusan
         # lapozó widget, csak akkor látszik, ha van IN_PROGRESS feladat.
         self.in_progress_label = InProgressTaskLabel(self.storage, self.ws, self)
-        self.in_progress_label.project_open_requested.connect(self._open_project_in_dialog)
+        self.in_progress_label.project_open_requested.connect(
+            self._open_project_in_dialog
+        )
         self.status_bar.addPermanentWidget(self.in_progress_label)
         self.in_progress_label.refresh()
 
         self.next_task_label = QLabel()
         self.next_task_label.setObjectName("NextTaskLabel")
-        self.next_task_label.setStyleSheet(
-            "padding: 2px 8px; border-radius: 4px;"
-        )
+        self.next_task_label.setStyleSheet("padding: 2px 8px; border-radius: 4px;")
         self.next_task_label.setCursor(Qt.CursorShape.PointingHandCursor)
         self.next_task_label.mousePressEvent = self._show_task_overview_popup
 
         self.status_bar.addPermanentWidget(self.next_task_label)
-
-
-        
 
     def _show_task_overview_popup(self, event) -> None:
         popup = TaskOverviewPopup(self.storage, self.ws, self)
@@ -461,14 +424,12 @@ class MainWindow(QMainWindow):
         popup.move(pos)
         popup.show()
 
-
     def _on_status_legend_closed(self) -> None:
         self.act_show_status_legend.setVisible(True)
 
     def _show_status_legend(self) -> None:
         self.status_legend.show_and_raise()
         self.act_show_status_legend.setVisible(False)
-
 
     # ---------- Nyelv ----------
     def _on_language_changed(self, _lang_code: str) -> None:
@@ -497,7 +458,7 @@ class MainWindow(QMainWindow):
         self.act_show_status_legend.setText(tr("main.action.show_status_legend"))
         self.status_legend.retranslate_ui()
 
-        self.migrate_covers_action.setText(tr("menu.migrate_covers"))
+        self.migrate_covers_action.setText(tr("main.action.migrate_covers"))
 
         self.in_progress_label.refresh()
 
@@ -532,7 +493,6 @@ class MainWindow(QMainWindow):
             self._open_project_in_sidebar(project_dir)
         else:
             self._open_project_in_dialog(project_dir)
-
 
     def export_workspace(self) -> None:
         default_name = f"Projektek_mentes_{date.today().strftime('%Y-%m-%d')}.zip"  # noqa: DTZ011 (helyi naptári dátum kell, nem UTC)
@@ -580,7 +540,6 @@ class MainWindow(QMainWindow):
                 if reply != QMessageBox.StandardButton.Yes:
                     return
 
-
             extra_local = self.ws.preview_extra_local(tmp_path)
             if extra_local:
                 names = "\n".join(f"- {c}" for c in extra_local)
@@ -597,7 +556,6 @@ class MainWindow(QMainWindow):
                 if reply == QMessageBox.StandardButton.No:
                     self.ws.remove_projects(extra_local)
 
-
             self.ws.import_from_extracted(tmp_path)
 
         self.reload_cards()
@@ -605,28 +563,15 @@ class MainWindow(QMainWindow):
             self, tr("main.import_done_title"), tr("main.import_done_text")
         )
 
-
-
-
-
-
-
-
     def _open_project_in_dialog(
-            self, 
-            project_dir: Path,
-            initial_tab_index: int | None = None
-
-    )-> None:
-
+        self, project_dir: Path, initial_tab_index: int | None = None
+    ) -> None:
         dlg = ProjectDialog(
             self.storage, project_dir, self, initial_tab_index=initial_tab_index
         )
         dlg.project_changed.connect(lambda: QTimer.singleShot(0, self.reload_cards))
         dlg.project_deleted.connect(lambda: QTimer.singleShot(0, self.reload_cards))
         dlg.exec()
-
-
 
     def _sidebar_confirm_discard(self) -> bool:
         """Ha az oldalsávban van nyitott, mentetlen változást tartalmazó
@@ -657,13 +602,12 @@ class MainWindow(QMainWindow):
 
         details.project_changed.connect(lambda: QTimer.singleShot(0, self.reload_cards))
         details.project_deleted.connect(lambda: QTimer.singleShot(0, self.reload_cards))
-        details.project_deleted.connect(lambda: QTimer.singleShot(0, self._reset_sidebar_placeholder))
+        details.project_deleted.connect(
+            lambda: QTimer.singleShot(0, self._reset_sidebar_placeholder)
+        )
         details.close_requested.connect(self._reset_sidebar_placeholder)
 
         self.details_layout.addWidget(details)
-
-
-
 
     def new_project(self) -> None:
         dlg = NewProjectDialog(self)

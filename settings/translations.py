@@ -154,6 +154,21 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "main.menu.tools": {"hu": "Eszközök", "en": "Tools"},
     "main.action.open_log": {"hu": "Napló megnyitása…", "en": "Open log…"},
 
+    # --- Fedőkép migráció
+    "main.action.migrate_covers": {
+        "hu": "Fedőképek migrálása...",
+        "en": "Migrate cover images...",
+    },
+    "main.migrate_covers.title": {"hu": "Fedőkép migráció", "en": "Cover image migration"},
+    "main.migrate_covers.none_found_text": {
+        "hu": "Nem található abszolút útvonalú borítókép — minden projekt rendben van.",
+        "en": "No cover image with an absolute path was found — all projects are fine.",
+    },
+    "main.migrate_covers.done_text": {
+        "hu": "Migráció kész.\n\nÉrintett projektek:\n{names}",
+        "en": "Migration complete.\n\nAffected projects:\n{names}",
+    },
+
 
     
 
