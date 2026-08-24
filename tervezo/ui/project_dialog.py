@@ -47,6 +47,7 @@ from .widgets import (
     DocumentRenameDialog,
     DocumentRowWidget,
     MilestoneDialog,
+    TaskDetailsDialog,
     TaskEditDialog,
     TaskRowWidget,
     build_richtext_toolbar,
@@ -399,6 +400,7 @@ class ProjectDetailsWidget(QWidget):
             row.start_requested.connect(self._on_task_start)
             row.toggled.connect(self._on_task_toggled)
             row.edit_requested.connect(self._on_task_edit)
+            row.details_requested.connect(self._on_task_details)
             row.delete_requested.connect(self._on_task_delete)
             row.move_requested.connect(self._on_task_move)
 
@@ -476,6 +478,13 @@ class ProjectDetailsWidget(QWidget):
             task.title = dlg.get_title()
             task.html = dlg.get_html()
             self._reload_tasks()
+
+    def _on_task_details(self, task_id: int) -> None:
+        task = next((t for t in self.tasks if t.id == task_id), None)
+        if not task:
+            return
+        dlg = TaskDetailsDialog(self, title=task.title, html=task.html)
+        dlg.exec()
 
     def _on_task_delete(self, task_id: int) -> None:
         self.tasks = [t for t in self.tasks if t.id != task_id]

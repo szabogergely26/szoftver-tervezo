@@ -35,6 +35,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
 from settings.translations import tr
 
 from ..core.documents import get_document_icon
@@ -151,6 +152,7 @@ class TaskRowWidget(QWidget):
     start_requested = Signal(int)
     toggled = Signal(int, bool)
     edit_requested = Signal(int)
+    details_requested = Signal(int)
     delete_requested = Signal(int)
     move_requested = Signal(int, int)  # (task_id, irány: -1 = fel, +1 = le)
 
@@ -165,6 +167,7 @@ class TaskRowWidget(QWidget):
     ):
         super().__init__(parent)
         self.task_id = task.id
+        self._mode = mode
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(4, 2, 4, 2)
@@ -222,9 +225,24 @@ class TaskRowWidget(QWidget):
             delete_btn = QPushButton(tr("common.delete"))
             delete_btn.clicked.connect(lambda: self.delete_requested.emit(self.task_id))
             layout.addWidget(delete_btn)
+        else:
+            details_btn = QPushButton(tr("common.details"))
+            details_btn.clicked.connect(
+                lambda: self.details_requested.emit(self.task_id)
+            )
+            layout.addWidget(details_btn)
 
     def set_html(self, html: str) -> None:
         self.label.setText(html)
+
+    def mouseDoubleClickEvent(self, event) -> None:
+        # A sorra (vagy a title-szövegre) duplán kattintva ugyanaz nyílik meg,
+        # mint a Részletek gombra kattintva - kényelmi gyorsút a gomb mellett.
+        if self._mode == "done":
+            self.details_requested.emit(self.task_id)
+        else:
+            self.edit_requested.emit(self.task_id)
+        super().mouseDoubleClickEvent(event)
 
 
 class DocumentRowWidget(QWidget):
@@ -531,6 +549,31 @@ class TaskEditDialog(QDialog):
 
     def get_html(self) -> str:
         return self.editor.toHtml()
+
+
+class TaskDetailsDialog(QDialog):
+    """Egy elkészült feladat tartalmának csak-olvasható megtekintése.
+
+    A TaskEditDialog szerkeszthető változatával szemben ez a dialógus nem
+    engedi módosítani a szöveget - elkészült feladatoknál a cél a részletek
+    megtekintése, nem az utólagos átírás.
+    """
+
+    def __init__(self, parent: QWidget | None = None, title: str = "", html: str = ""):
+        super().__init__(parent)
+        self.setWindowTitle(title or tr("widgets.task_details_title"))
+        self.resize(420, 320)
+
+        layout = QVBoxLayout(self)
+
+        viewer = QTextEdit()
+        viewer.setHtml(html)
+        viewer.setReadOnly(True)
+        layout.addWidget(viewer, 1)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
 
 
 def _text_icon(

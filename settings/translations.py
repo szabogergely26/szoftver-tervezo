@@ -50,9 +50,9 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "Task background service and notifications – coming soon.\n(e.g. email notifications :D)",
     },
     "settings.tasks.template_tasks_label": {
-        "hu": "Sablon feladatok listája (a projekteknél a \"Sablon feladatok\" "
+        "hu": 'Sablon feladatok listája (a projekteknél a "Sablon feladatok" '
         "gombbal vehetők fel):",
-        "en": "Template task list (available via the \"Template tasks\" "
+        "en": 'Template task list (available via the "Template tasks" '
         "button on projects):",
     },
     "settings.tasks.add_btn": {"hu": "Hozzáadás", "en": "Add"},
@@ -253,8 +253,7 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "template_tasks.description": {
         "hu": "Válaszd ki, mely feladatokat szeretnéd felvenni a "
         "Következő feladatok közé.",
-        "en": "Choose which tasks you'd like to add to the "
-        "upcoming tasks list.",
+        "en": "Choose which tasks you'd like to add to the upcoming tasks list.",
     },
     "template_tasks.status_pending": {"hu": "már felvéve", "en": "already added"},
     "template_tasks.status_in_progress": {"hu": "folyamatban", "en": "in progress"},
@@ -337,6 +336,7 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "widgets.milestone_name_label": {"hu": "Cím:", "en": "Title:"},
     "widgets.milestone_description_label": {"hu": "Leírás:", "en": "Description:"},
     "widgets.task_edit_title": {"hu": "Feladat szerkesztése", "en": "Edit task"},
+    "widgets.task_details_title": {"hu": "Feladat részletei", "en": "Task details"},
     "widgets.document_open": {"hu": "Megnyitás", "en": "Open"},
     "widgets.document_rename": {"hu": "Átnevezés", "en": "Rename"},
     "widgets.document_conflict_title": {
