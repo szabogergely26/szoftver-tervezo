@@ -1,7 +1,7 @@
-/* ============================================================
+/* ================================================================================
    Tervező – világos téma
    Letisztult, halvány szürke-kék alapon semleges szürke/fekete accent színnel.
-   ============================================================ */
+   ================================================================================ */
 
 * {
     outline: none;
@@ -209,6 +209,39 @@ QTabBar::tab:selected {
 
 QTabBar::tab:hover:!selected {
     background-color: #e2e8f2;
+}
+
+/* Görgető nyilak, ha a tabsor nem fér ki */
+QTabBar QToolButton {
+    background-color: #eef0f3;
+    border: 1px solid #d0d3d9;
+    border-radius: 4px;
+}
+
+QTabBar QToolButton:hover {
+    background-color: #d5deee;
+    border-color: #b9c2d0;
+}
+
+QTabBar QToolButton:pressed {
+    background-color: #c5d2e8;
+}
+
+QTabBar QToolButton:disabled {
+    background-color: #f0f1f3;
+    border-color: #e0e2e6;
+}
+
+QTabBar QToolButton::left-arrow {
+    image: url({{TAB_ARROW_LEFT}});
+    width: 12px;
+    height: 12px;
+}
+
+QTabBar QToolButton::right-arrow {
+    image: url({{TAB_ARROW_RIGHT}});
+    width: 12px;
+    height: 12px;
 }
 
 /* ---------- ScrollBar ---------- */

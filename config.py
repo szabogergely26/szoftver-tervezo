@@ -19,6 +19,8 @@ SETTINGS_DIR = BASE_DIR / "settings"
 
 ASSETS_DIR = BASE_DIR / "assets"
 ICON_PATH = ASSETS_DIR / "icons" / "app_icon.png"
+TAB_ARROW_LEFT_PATH = ASSETS_DIR / "icons" / "left-arrow.svg"
+TAB_ARROW_RIGHT_PATH = ASSETS_DIR / "icons" / "right-arrow.svg"
 
 # ---------- Felhasználói adatok (mindig írható, sose az app mellett) ----------
 #
