@@ -13,7 +13,6 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-from config import ASSETS_DIR
 from PySide6.QtCore import Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import QDesktopServices, QPixmap
 from PySide6.QtWidgets import (
@@ -35,11 +34,14 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+from config import ASSETS_DIR
 from settings.translations import tr
 
 from ..core import documents as documents_core
 from ..core.models import ProjectStatus, TaskItem, TaskStatus
 from ..core.storage import Storage
+from .template_tasks_dialog import TemplateTasksDialog
 from .widgets import (
     DocumentConflictDialog,
     DocumentRenameDialog,
@@ -345,6 +347,10 @@ class ProjectDetailsWidget(QWidget):
         add_row.addWidget(add_task_btn)
         next_layout.addLayout(add_row)
 
+        template_tasks_btn = QPushButton(tr("project.template_tasks_btn"))
+        template_tasks_btn.clicked.connect(self._on_template_tasks)
+        next_layout.addWidget(template_tasks_btn)
+
         self.tabs.addTab(next_tab, tr("project.tab.next_tasks"))
 
         in_progress_tab = QWidget()
@@ -420,6 +426,25 @@ class ProjectDetailsWidget(QWidget):
             )
         )
         self.new_task_edit.clear()
+        self._reload_tasks()
+
+    def _on_template_tasks(self) -> None:
+        dlg = TemplateTasksDialog(self, storage=self.storage, existing_tasks=self.tasks)
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        for item in dlg.selected_template_items():
+            new_id = self.storage.next_task_id(self.tasks)
+            self.tasks.append(
+                TaskItem(
+                    id=new_id,
+                    title=item["title"],
+                    html=item["title"],
+                    status=TaskStatus.PENDING,
+                    template_id=item["id"],
+                )
+            )
+
         self._reload_tasks()
 
     def _on_task_start(self, task_id: int) -> None:

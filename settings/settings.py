@@ -14,7 +14,12 @@ from PySide6.QtWidgets import (
     QDialogButtonBox,
     QFormLayout,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QMessageBox,
+    QPushButton,
     QStackedWidget,
     QTreeWidget,
     QTreeWidgetItem,
@@ -58,6 +63,7 @@ def get_project_view_mode() -> str:
     mode = data.get("project_view_mode")
     return mode if mode in ("dialog", "sidebar") else "dialog"
 
+
 def get_splitter_sizes() -> list[int] | None:
     """Visszaadja a mentett splitter-arányt (kártyák / oldalsáv), vagy None-t."""
     data = load_settings()
@@ -74,17 +80,11 @@ def save_splitter_sizes(sizes: list[int]) -> None:
     save_settings(data)
 
 
-
 def get_close_to_tray() -> bool:
     """Igaz, ha bezáráskor az app a tálcára kicsinyítve fusson tovább (alapból igen)."""
     data = load_settings()
     value = data.get("close_to_tray")
     return value if isinstance(value, bool) else True
-
-
-
-
-
 
 
 # (név, logging szint, szín) - ez a sorrend jelenik meg a legördülőkben
@@ -155,7 +155,9 @@ class SettingsDialog(QDialog):
             tr("settings.category.appearance"), self._build_appearance_page()
         )
         self._add_child_category(
-            appearance_item, tr("settings.category.language"), self._build_language_page()
+            appearance_item,
+            tr("settings.category.language"),
+            self._build_language_page(),
         )
         self._add_child_category(
             appearance_item,
@@ -171,8 +173,7 @@ class SettingsDialog(QDialog):
 
         # --- Alsó gombsor ---
         button_box = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok
-            | QDialogButtonBox.StandardButton.Cancel
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
         )
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
@@ -212,7 +213,6 @@ class SettingsDialog(QDialog):
         self.close_to_tray_checkbox.setChecked(get_close_to_tray())
         layout.addWidget(self.close_to_tray_checkbox)
 
-
         layout.addWidget(QLabel(tr("settings.placeholder.general")))
         layout.addStretch()
         return page
@@ -244,8 +244,12 @@ class SettingsDialog(QDialog):
         layout = QFormLayout(page)
 
         self.view_mode_combo = QComboBox()
-        self.view_mode_combo.addItem(tr("settings.general.view_mode.dialog"), userData="dialog")
-        self.view_mode_combo.addItem(tr("settings.general.view_mode.sidebar"), userData="sidebar")
+        self.view_mode_combo.addItem(
+            tr("settings.general.view_mode.dialog"), userData="dialog"
+        )
+        self.view_mode_combo.addItem(
+            tr("settings.general.view_mode.sidebar"), userData="sidebar"
+        )
 
         current_idx = self.view_mode_combo.findData(get_project_view_mode())
         if current_idx >= 0:
@@ -255,11 +259,106 @@ class SettingsDialog(QDialog):
         return page
 
     def _build_tasks_page(self) -> QWidget:
+        # Késleltetett (lazy) import: a tervezo.core.storage a settings
+        # csomagot importálja (models.py -> settings.translations), így egy
+        # modul-szintű "from tervezo.core.storage import Storage" itt fenn
+        # körkörös importot okozna. Metóduson belül importolva a hívás
+        # időpontjában mindkét modul már teljesen be van töltve.
+        from tervezo.core.storage import Storage
+
         page = QWidget()
-        layout = QVBoxLayout(page)
-        layout.addWidget(QLabel(tr("settings.placeholder.tasks")))
-        layout.addStretch()
+        outer_layout = QVBoxLayout(page)
+
+        outer_layout.addWidget(QLabel(tr("settings.tasks.template_tasks_label")))
+
+        # Lista + jobb oldali gombsor - ez a "keret" a sablon-tételek
+        # szerkesztéséhez. A self._template_tasks a memóriabeli munkapéldány,
+        # csak a dialógus OK gombjára íródik ki a JSON fájlba.
+        row_layout = QHBoxLayout()
+        outer_layout.addLayout(row_layout, 1)
+
+        self._storage = Storage()
+        self._template_tasks: list[dict] = self._storage.read_template_tasks()
+
+        self.template_tasks_list = QListWidget()
+        for item in self._template_tasks:
+            self.template_tasks_list.addItem(QListWidgetItem(item["title"]))
+        row_layout.addWidget(self.template_tasks_list, 1)
+
+        button_col = QVBoxLayout()
+        add_btn = QPushButton(tr("settings.tasks.add_btn"))
+        edit_btn = QPushButton(tr("settings.tasks.edit_btn"))
+        remove_btn = QPushButton(tr("settings.tasks.remove_btn"))
+        add_btn.clicked.connect(self._on_template_task_add)
+        edit_btn.clicked.connect(self._on_template_task_edit)
+        remove_btn.clicked.connect(self._on_template_task_remove)
+        button_col.addWidget(add_btn)
+        button_col.addWidget(edit_btn)
+        button_col.addWidget(remove_btn)
+        button_col.addStretch(1)
+        row_layout.addLayout(button_col)
+
         return page
+
+    # ---------- Feladatok lap: sablon-tételek szerkesztése ----------
+    def _next_template_task_id(self) -> str:
+        """Új, egyedi 'custom_N' azonosító a kézzel felvett tételeknek."""
+        existing_ids = {item["id"] for item in self._template_tasks}
+        n = 1
+        while f"custom_{n}" in existing_ids:
+            n += 1
+        return f"custom_{n}"
+
+    def _on_template_task_add(self) -> None:
+        title, ok = QInputDialog.getText(
+            self, tr("settings.tasks.add_btn"), tr("settings.tasks.title_prompt")
+        )
+        title = title.strip()
+        if not ok or not title:
+            return
+
+        self._template_tasks.append(
+            {"id": self._next_template_task_id(), "title": title}
+        )
+        self.template_tasks_list.addItem(QListWidgetItem(title))
+
+    def _on_template_task_edit(self) -> None:
+        row = self.template_tasks_list.currentRow()
+        if row < 0:
+            return
+
+        current_title = self._template_tasks[row]["title"]
+        title, ok = QInputDialog.getText(
+            self,
+            tr("settings.tasks.edit_btn"),
+            tr("settings.tasks.title_prompt"),
+            text=current_title,
+        )
+        title = title.strip()
+        if not ok or not title:
+            return
+
+        self._template_tasks[row]["title"] = title
+        self.template_tasks_list.item(row).setText(title)
+
+    def _on_template_task_remove(self) -> None:
+        row = self.template_tasks_list.currentRow()
+        if row < 0:
+            return
+
+        confirm = QMessageBox.question(
+            self,
+            tr("settings.tasks.remove_btn"),
+            tr(
+                "settings.tasks.remove_confirm",
+                title=self._template_tasks[row]["title"],
+            ),
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return
+
+        del self._template_tasks[row]
+        self.template_tasks_list.takeItem(row)
 
     # ---------- Mentés ----------
     def accept(self) -> None:
@@ -277,8 +376,7 @@ class SettingsDialog(QDialog):
 
         data["close_to_tray"] = self.close_to_tray_checkbox.isChecked()
 
-
-
+        self._storage.write_template_tasks(self._template_tasks)
 
         save_settings(data)
 

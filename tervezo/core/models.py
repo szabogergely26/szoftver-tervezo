@@ -85,6 +85,10 @@ class TaskItem:
     html: str
     status: TaskStatus = TaskStatus.PENDING
     completed_at: str | None = None
+    # Ha a feladat egy "Sablon feladatok" tételből lett felvéve, itt az adott
+    # sablon-tétel stabil azonosítója (l. sablon_feladatok.json). Kézzel felvett
+    # feladatoknál és régi mentéseknél None.
+    template_id: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -93,6 +97,7 @@ class TaskItem:
             "html": self.html,
             "status": self.status.value,
             "completed_at": self.completed_at,
+            "template_id": self.template_id,
         }
 
     @staticmethod
@@ -121,6 +126,7 @@ class TaskItem:
             html=html,
             status=status,
             completed_at=data.get("completed_at"),
+            template_id=data.get("template_id"),
         )
 
     @property

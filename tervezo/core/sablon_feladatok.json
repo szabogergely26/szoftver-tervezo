@@ -1,0 +1,30 @@
+[
+  {
+    "id": "build_folyamat",
+    "title": "Build folyamat (deb, exe gyártás)"
+  },
+  {
+    "id": "szoftverforras",
+    "title": "Szoftverforrás"
+  },
+  {
+    "id": "stabil_link",
+    "title": "Stabil letöltési link GitHub Page-nak"
+  },
+  {
+    "id": "tobbnyelvu_ui",
+    "title": "Többnyelvű UI"
+  },
+  {
+    "id": "szoftver_ikon",
+    "title": "Szoftver ikon"
+  },
+  {
+    "id": "nevjegy_log",
+    "title": "Névjegy, Log ablak (vagy legalább log fájl helye)"
+  },
+  {
+    "id": "license_readme",
+    "title": "License fájl, readme"
+  }
+]

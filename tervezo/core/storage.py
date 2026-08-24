@@ -14,6 +14,10 @@ JOURNAL_FILE = "naplo.html"
 ASSETS_DIR = "assets"
 DOCS_DIR = "docs"
 
+# A "Sablon feladatok" dialógus tételeit tartalmazó, kódtól független config.
+# Új tétel felvételéhez elég ezt a JSON fájlt bővíteni, kódmódosítás nem kell.
+TEMPLATE_TASKS_FILE = Path(__file__).parent / "sablon_feladatok.json"
+
 
 class Storage:
     # ---------- Projektek listázása ----------
@@ -227,6 +231,23 @@ class Storage:
 
     def next_task_id(self, tasks: list[TaskItem]) -> int:
         return max((t.id for t in tasks), default=0) + 1
+
+    def read_template_tasks(self) -> list[dict]:
+        """A 'Sablon feladatok' dialógus tételei (sablon_feladatok.json-ból).
+
+        Bővítés: a JSON fájlba felvett új {"id": ..., "title": ...} tétel
+        automatikusan megjelenik a dialógusban, kódmódosítás nélkül.
+        """
+        if not TEMPLATE_TASKS_FILE.exists():
+            return []
+        return json.loads(TEMPLATE_TASKS_FILE.read_text(encoding="utf-8"))
+
+    def write_template_tasks(self, items: list[dict]) -> None:
+        """A sablon-tétel lista elmentése (Beállítások > Feladatok lapról)."""
+        TEMPLATE_TASKS_FILE.write_text(
+            json.dumps(items, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
 
     def parse_task_list(self, raw: str) -> list[str]:
         """A Varázsló vesszővel elválasztott feladatlista-mezőjének szétbontása."""

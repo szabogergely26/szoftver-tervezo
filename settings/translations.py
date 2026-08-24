@@ -49,6 +49,23 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "hu": "Feladatok háttérszolgáltatás és értesítések – hamarosan.\n(pl. email értesítés :D)",
         "en": "Task background service and notifications – coming soon.\n(e.g. email notifications :D)",
     },
+    "settings.tasks.template_tasks_label": {
+        "hu": "Sablon feladatok listája (a projekteknél a \"Sablon feladatok\" "
+        "gombbal vehetők fel):",
+        "en": "Template task list (available via the \"Template tasks\" "
+        "button on projects):",
+    },
+    "settings.tasks.add_btn": {"hu": "Hozzáadás", "en": "Add"},
+    "settings.tasks.edit_btn": {"hu": "Szerkesztés", "en": "Edit"},
+    "settings.tasks.remove_btn": {"hu": "Eltávolítás", "en": "Remove"},
+    "settings.tasks.title_prompt": {
+        "hu": "Feladat szövege:",
+        "en": "Task text:",
+    },
+    "settings.tasks.remove_confirm": {
+        "hu": "Biztosan eltávolítod ezt a tételt: „{title}”?",
+        "en": "Remove this item: \u201c{title}\u201d?",
+    },
     "settings.category.sidebar_mode": {"hu": "Oldalsáv", "en": "Sidebar"},
     "settings.general.view_mode.dialog": {"hu": "Ablak", "en": "Window"},
     "settings.general.view_mode.sidebar": {"hu": "Oldalsáv", "en": "Sidebar"},
@@ -227,6 +244,21 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "hu": "Új feladat szövege...",
         "en": "New task text...",
     },
+    "project.template_tasks_btn": {
+        "hu": "Sablon feladatok...",
+        "en": "Template tasks...",
+    },
+    # --- Sablon feladatok dialógus ---
+    "template_tasks.title": {"hu": "Sablon feladatok", "en": "Template tasks"},
+    "template_tasks.description": {
+        "hu": "Válaszd ki, mely feladatokat szeretnéd felvenni a "
+        "Következő feladatok közé.",
+        "en": "Choose which tasks you'd like to add to the "
+        "upcoming tasks list.",
+    },
+    "template_tasks.status_pending": {"hu": "már felvéve", "en": "already added"},
+    "template_tasks.status_in_progress": {"hu": "folyamatban", "en": "in progress"},
+    "template_tasks.status_done": {"hu": "kész", "en": "done"},
     # --- Dokumentumok tab ---
     "project.document.upload_first": {
         "hu": "Új dokumentum feltöltése...",
