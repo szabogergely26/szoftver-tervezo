@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from pathlib import Path
 
 from PySide6.QtCore import QSize, Qt, QTimer, Signal
 from PySide6.QtGui import (
@@ -22,6 +23,8 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QListWidget,
+    QListWidgetItem,
     QMenu,
     QPlainTextEdit,
     QPushButton,
@@ -32,9 +35,9 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
 from settings.translations import tr
 
+from ..core.documents import get_document_icon
 from ..core.models import Milestone, Project, TaskItem
 
 CARD_WIDTH = 200
@@ -152,13 +155,13 @@ class TaskRowWidget(QWidget):
     move_requested = Signal(int, int)  # (task_id, irány: -1 = fel, +1 = le)
 
     def __init__(
-            self, 
-            task: TaskItem, 
-            mode: str = "pending", 
-            parent: QWidget | None = None,
-            index: int | None = None,
-            is_first: bool = False,
-            is_last: bool = False,
+        self,
+        task: TaskItem,
+        mode: str = "pending",
+        parent: QWidget | None = None,
+        index: int | None = None,
+        is_first: bool = False,
+        is_last: bool = False,
     ):
         super().__init__(parent)
         self.task_id = task.id
@@ -200,9 +203,6 @@ class TaskRowWidget(QWidget):
             )
             layout.addWidget(self.checkbox)
 
-            
-
-
         else:
             # mode == "done"
             done_label = QLabel(f"✅ {task.completed_at or ''}")
@@ -223,19 +223,231 @@ class TaskRowWidget(QWidget):
             delete_btn.clicked.connect(lambda: self.delete_requested.emit(self.task_id))
             layout.addWidget(delete_btn)
 
-
-
     def set_html(self, html: str) -> None:
         self.label.setText(html)
 
 
+class DocumentRowWidget(QWidget):
+    """Egy dokumentum-sor a Dokumentumok tabon: típus-ikon + fájlnév + gombok.
+
+    A show_extension paraméter/set_show_extension() csak a MEGJELENÍTETT
+    szöveget érinti (pl. "readme.md" -> "readme") - a self.filename mindig
+    a teljes, tényleges fájlnév marad, ezt küldik a jelzések is.
+    """
+
+    open_requested = Signal(str)
+    rename_requested = Signal(str)
+    delete_requested = Signal(str)
+
+    def __init__(
+        self, filename: str, parent: QWidget | None = None, show_extension: bool = True
+    ):
+        super().__init__(parent)
+        self.filename = filename
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(4, 2, 4, 2)
+
+        icon_label = QLabel()
+        icon_label.setPixmap(get_document_icon(filename).pixmap(20, 20))
+        icon_label.setFixedWidth(28)
+        layout.addWidget(icon_label)
+
+        self.name_label = QLabel()
+        self.name_label.setWordWrap(True)
+        layout.addWidget(self.name_label, 1)
+        self.set_show_extension(show_extension)
+
+        open_btn = QPushButton(tr("widgets.document_open"))
+        open_btn.clicked.connect(lambda: self.open_requested.emit(self.filename))
+        layout.addWidget(open_btn)
+
+        rename_btn = QPushButton(tr("widgets.document_rename"))
+        rename_btn.clicked.connect(lambda: self.rename_requested.emit(self.filename))
+        layout.addWidget(rename_btn)
+
+        delete_btn = QPushButton(tr("common.delete"))
+        delete_btn.clicked.connect(lambda: self.delete_requested.emit(self.filename))
+        layout.addWidget(delete_btn)
+
+    def set_show_extension(self, show_extension: bool) -> None:
+        """A megjelenített szöveget frissíti - a self.filename nem változik."""
+        if show_extension:
+            self.name_label.setText(self.filename)
+        else:
+            self.name_label.setText(Path(self.filename).stem)
 
 
+class DocumentRenameDialog(QDialog):
+    """Dokumentum átnevezése: külön mező a névnek és a kiterjesztésnek.
+
+    A kiterjesztés így nem törölhető véletlenül (ami elrontaná a beépített
+    .md/.txt előnézet felismerését) - a Kiterjesztés mező is szerkeszthető
+    marad, de jól elkülönül a névtől, tehát szándékos döntés kell hozzá.
+
+    A "Kiterjesztés megjelenítése" checkbox állapota megosztott a
+    Dokumentumok tab listájával: a kezdőértékét a hívó adja át
+    (show_extension), a dialógus lezárása után pedig new_show_extension()
+    adja vissza a (esetleg módosított) állapotot - ezt a hívó elmenti, és
+    a lista összes sorára alkalmazza. Mégse esetén a checkbox-módosítás
+    is elvész, csak Elfogadáskor válik véglegessé.
+    """
+
+    def __init__(
+        self,
+        filename: str,
+        parent: QWidget | None = None,
+        *,
+        show_extension: bool = True,
+    ):
+        super().__init__(parent)
+        self.setWindowTitle(tr("project.document.rename_title"))
+
+        path = Path(filename)
+        stem = path.stem
+        suffix = path.suffix  # a pontot is tartalmazza, pl. ".md"; lehet üres
+
+        layout = QFormLayout(self)
+
+        self.name_edit = QLineEdit(stem)
+        self.name_edit.selectAll()
+        layout.addRow(tr("project.document.rename_name_label"), self.name_edit)
+
+        self.suffix_edit = QLineEdit(suffix)
+        self.suffix_edit.setPlaceholderText(tr("project.document.rename_no_extension"))
+        self._suffix_row_label = tr("project.document.rename_extension_label")
+        layout.addRow(self._suffix_row_label, self.suffix_edit)
+
+        self.show_suffix_checkbox = QCheckBox(
+            tr("project.document.rename_show_extension")
+        )
+        self.show_suffix_checkbox.setChecked(show_extension)
+        self.show_suffix_checkbox.toggled.connect(self._on_show_suffix_toggled)
+        layout.addRow("", self.show_suffix_checkbox)
+        self._on_show_suffix_toggled(show_extension)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(self._on_accept)
+        buttons.rejected.connect(self.reject)
+        layout.addRow(buttons)
+
+        self._result_name = ""
+        self._result_show_extension = show_extension
+
+    def _on_show_suffix_toggled(self, checked: bool) -> None:
+        form: QFormLayout = self.layout()
+        form.setRowVisible(self.suffix_edit, checked)
+
+    def _on_accept(self) -> None:
+        name = self.name_edit.text().strip()
+        if not name:
+            self.name_edit.setFocus()
+            return
+        suffix = self.suffix_edit.text().strip()
+        if suffix and not suffix.startswith("."):
+            suffix = f".{suffix}"
+        self._result_name = f"{name}{suffix}"
+        self._result_show_extension = self.show_suffix_checkbox.isChecked()
+        self.accept()
+
+    def new_filename(self) -> str:
+        return self._result_name
+
+    def new_show_extension(self) -> bool:
+        """A checkbox végállapota - csak Elfogadás után érvényes és végleges."""
+        return self._result_show_extension
 
 
+class DocumentConflictDialog(QDialog):
+    """Ütközés-feloldó dialógus: 'X már létezik, felülírjam vagy más néven mentsem?'
+
+    Felülírás / Új név gombokkal (a Mégse a QDialog alap Escape-jén megy).
+    """
+
+    def __init__(self, filename: str, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.setWindowTitle(tr("widgets.document_conflict_title"))
+
+        layout = QVBoxLayout(self)
+
+        message = QLabel(tr("widgets.document_conflict_text", name=filename))
+        message.setWordWrap(True)
+        layout.addWidget(message)
+
+        button_row = QHBoxLayout()
+        self.overwrite_btn = QPushButton(tr("widgets.document_overwrite"))
+        self.overwrite_btn.clicked.connect(self._on_overwrite)
+        button_row.addWidget(self.overwrite_btn)
+
+        self.new_name_btn = QPushButton(tr("widgets.document_new_name"))
+        self.new_name_btn.clicked.connect(self._on_new_name)
+        button_row.addWidget(self.new_name_btn)
+
+        cancel_btn = QPushButton(tr("common.cancel"))
+        cancel_btn.clicked.connect(self.reject)
+        button_row.addWidget(cancel_btn)
+
+        layout.addLayout(button_row)
+
+        self._choice: str | None = None
+
+    def _on_overwrite(self) -> None:
+        self._choice = "overwrite"
+        self.accept()
+
+    def _on_new_name(self) -> None:
+        self._choice = "new_name"
+        self.accept()
+
+    def choice(self) -> str | None:
+        """'overwrite', 'new_name', vagy None (Mégse/Escape esetén)."""
+        return self._choice
 
 
-        
+class ProjectPickerDialog(QDialog):
+    """Projekt-választó lista, pl. a Fájl menüből induló műveletekhez,
+    amikor a felhasználó nem egy már nyitott projekt kontextusából indul.
+    """
+
+    def __init__(self, projects: list[Project], parent: QWidget | None = None):
+        super().__init__(parent)
+        self.setWindowTitle(tr("widgets.project_picker_title"))
+        self.resize(360, 420)
+
+        layout = QVBoxLayout(self)
+
+        self.list_widget = QListWidget()
+        for project in projects:
+            item = QListWidgetItem(project.name)
+            item.setData(Qt.ItemDataRole.UserRole, project.path)
+            self.list_widget.addItem(item)
+        self.list_widget.itemDoubleClicked.connect(lambda _item: self.accept())
+        layout.addWidget(self.list_widget, 1)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(self._on_accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+        if self.list_widget.count() > 0:
+            self.list_widget.setCurrentRow(0)
+
+    def _on_accept(self) -> None:
+        if self.list_widget.currentItem() is None:
+            return
+        self.accept()
+
+    def selected_project_path(self):
+        item = self.list_widget.currentItem()
+        if item is None:
+            return None
+        return item.data(Qt.ItemDataRole.UserRole)
+
+
 class MilestoneDialog(QDialog):
     """Mérföldkő felvétele / szerkesztése (dátum, cím, rövid leírás)."""
 
@@ -308,8 +520,6 @@ class TaskEditDialog(QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
-
-
     def _on_accept(self) -> None:
         if not self.title_edit.text().strip():
             self.title_edit.setFocus()
@@ -319,15 +529,8 @@ class TaskEditDialog(QDialog):
     def get_title(self) -> str:
         return self.title_edit.text().strip()
 
-
     def get_html(self) -> str:
         return self.editor.toHtml()
-
-
-
-
-
-
 
 
 def _text_icon(
@@ -381,9 +584,8 @@ def build_richtext_toolbar(target: QTextEdit, parent: QWidget) -> QToolBar:
     tb.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon)
     tb.setIconSize(QSize(18, 18))
     tb.setStyleSheet(
-    "QToolBar { spacing: 2px; }"
-    "QToolButton { padding: 1px 3px; font-size: 10px; }"
-)
+        "QToolBar { spacing: 2px; }QToolButton { padding: 1px 3px; font-size: 10px; }"
+    )
 
     state = {
         "highlight_color": QColor("#ffff66"),
@@ -428,11 +630,11 @@ def build_richtext_toolbar(target: QTextEdit, parent: QWidget) -> QToolBar:
     act_italic.triggered.connect(lambda checked: set_char_format(italic=checked))
     tb.addAction(act_italic)
 
-    act_underline = QAction(_text_icon("U", underline=True), tr("toolbar.underline"), parent)
-    act_underline.setCheckable(True)
-    act_underline.triggered.connect(
-        lambda checked: set_char_format(underline=checked)
+    act_underline = QAction(
+        _text_icon("U", underline=True), tr("toolbar.underline"), parent
     )
+    act_underline.setCheckable(True)
+    act_underline.triggered.connect(lambda checked: set_char_format(underline=checked))
     tb.addAction(act_underline)
 
     tb.addSeparator()
@@ -512,12 +714,12 @@ def build_richtext_toolbar(target: QTextEdit, parent: QWidget) -> QToolBar:
     size_box.setRange(6, 48)
     size_box.setValue(11)
     size_box.setSuffix(" pt")
-    size_box.setFixedHeight(40) # Részletek ablak eszköztár magassága
+    size_box.setFixedHeight(40)  # Részletek ablak eszköztár magassága
 
     # méretek: padding
     # padding 2. érték - betüméret doboza, font-size: betümérete
     size_box.setStyleSheet("padding: 0px 10px; font-size: 13px;")
-    size_box.setFixedWidth(70)   # ne nyúljon szét vízszintesen
+    size_box.setFixedWidth(70)  # ne nyúljon szét vízszintesen
     size_box.valueChanged.connect(lambda value: set_char_format(point_size=value))
 
     size_container = QWidget(parent)

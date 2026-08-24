@@ -5,6 +5,7 @@ import zipfile
 from datetime import date
 from pathlib import Path
 
+from config import ICON_PATH
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QAction, QIcon, QTextDocumentFragment
 from PySide6.QtWidgets import (
@@ -24,8 +25,6 @@ from PySide6.QtWidgets import (
     QWidget,
     QWidgetAction,
 )
-
-from config import ICON_PATH
 from settings.settings import (
     SettingsDialog,
     get_close_to_tray,
@@ -34,6 +33,7 @@ from settings.settings import (
     save_splitter_sizes,
 )
 from settings.translations import language_signal, tr
+from tervezo.core.migrate_covers import migrate_absolute_covers
 
 from ..core.models import TaskStatus
 from ..core.storage import Storage
@@ -43,11 +43,10 @@ from .flow_layout import FlowLayout
 from .in_progress_task_label import InProgressTaskLabel
 from .log_dialog import LogDialog
 from .new_project_dialog import NewProjectDialog
-from .project_dialog import ProjectDetailsWidget, ProjectDialog
+from .project_dialog import DOCUMENTS_TAB_INDEX, ProjectDetailsWidget, ProjectDialog
 from .status_legend_widget import StatusLegendWidget
 from .task_overview_popup import TaskOverviewPopup
-from .widgets import ProjectCard
-from tervezo.core.migrate_covers import migrate_absolute_covers
+from .widgets import ProjectCard, ProjectPickerDialog
 
 
 class MainWindow(QMainWindow):
@@ -168,6 +167,12 @@ class MainWindow(QMainWindow):
         self.file_menu.addAction(self.new_project_action)
 
         self.file_menu.addSeparator()
+
+        self.add_document_action = QAction(
+            QIcon.fromTheme("document-open-recent"), "", self
+        )
+        self.add_document_action.triggered.connect(self.add_document_from_menu)
+        self.file_menu.addAction(self.add_document_action)
 
         # --- Megnyitás / Mentés / Beállítások
         self.open_action = QAction(QIcon.fromTheme("document-open"), "", self)
@@ -441,6 +446,7 @@ class MainWindow(QMainWindow):
 
         self.file_menu.setTitle(tr("main.menu.file"))
         self.new_project_action.setText(tr("main.action.new_project"))
+        self.add_document_action.setText(tr("main.action.add_document"))
 
         self.open_action.setText(tr("main.action.import_workspace"))
         self.save_action.setText(tr("main.action.export_workspace"))
@@ -564,10 +570,17 @@ class MainWindow(QMainWindow):
         )
 
     def _open_project_in_dialog(
-        self, project_dir: Path, initial_tab_index: int | None = None
+        self,
+        project_dir: Path,
+        initial_tab_index: int | None = None,
+        auto_add_document: bool = False,
     ) -> None:
         dlg = ProjectDialog(
-            self.storage, project_dir, self, initial_tab_index=initial_tab_index
+            self.storage,
+            project_dir,
+            self,
+            initial_tab_index=initial_tab_index,
+            auto_add_document=auto_add_document,
         )
         dlg.project_changed.connect(lambda: QTimer.singleShot(0, self.reload_cards))
         dlg.project_deleted.connect(lambda: QTimer.singleShot(0, self.reload_cards))
@@ -634,3 +647,36 @@ class MainWindow(QMainWindow):
             return
 
         self.reload_cards()
+
+    def add_document_from_menu(self) -> None:
+        """Fájl menü -> Dokumentum hozzáadása.
+
+        Ha csak egy projektből indítva (pl. már nyitva van a Dokumentumok
+        tab) egyértelmű lenne a cél; innen, a Fájl menüből viszont mindig
+        meg kell kérdezni, melyik projekthez adjuk hozzá a fájlt.
+        """
+        projects = [
+            self.storage.read_project(project_dir)
+            for project_dir in self.storage.list_projects(self.ws.projects_dir)
+        ]
+        if not projects:
+            QMessageBox.information(
+                self,
+                tr("widgets.project_picker_title"),
+                tr("widgets.project_picker_empty"),
+            )
+            return
+
+        picker = ProjectPickerDialog(projects, self)
+        if picker.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        project_path = picker.selected_project_path()
+        if project_path is None:
+            return
+
+        self._open_project_in_dialog(
+            project_path,
+            initial_tab_index=DOCUMENTS_TAB_INDEX,
+            auto_add_document=True,
+        )

@@ -5,7 +5,7 @@ def confirm_close(self) -> bool: függvényeben belül:
         # Hibakereséshez ideiglenesen visszakapcsolható.
         # print("=== SIDEBAR DIRTY ===")
         .....
-        .....     
+        .....
 """
 
 from __future__ import annotations
@@ -13,9 +13,9 @@ from __future__ import annotations
 from datetime import datetime
 from pathlib import Path
 
-
-from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtGui import QPixmap
+from config import ASSETS_DIR
+from PySide6.QtCore import Qt, QTimer, QUrl, Signal
+from PySide6.QtGui import QDesktopServices, QPixmap
 from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
@@ -29,22 +29,29 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QPlainTextEdit,
     QPushButton,
+    QStackedWidget,
     QTabWidget,
     QTextEdit,
     QVBoxLayout,
     QWidget,
 )
-
-from config import ASSETS_DIR
 from settings.translations import tr
 
+from ..core import documents as documents_core
 from ..core.models import ProjectStatus, TaskItem, TaskStatus
 from ..core.storage import Storage
 from .widgets import (
+    DocumentConflictDialog,
+    DocumentRenameDialog,
+    DocumentRowWidget,
     MilestoneDialog,
     TaskEditDialog,
     TaskRowWidget,
     build_richtext_toolbar,
+)
+
+DOCUMENTS_TAB_INDEX = (
+    5  # Áttekintés(0), Napló(1), Következő(2), Folyamatban(3), Kész(4), Dokumentumok(5)
 )
 
 
@@ -68,6 +75,7 @@ class ProjectDetailsWidget(QWidget):
         parent: QWidget | None = None,
         show_close_button: bool = True,
         initial_tab_index: int | None = None,
+        auto_add_document: bool = False,
     ):
         super().__init__(parent)
         self.storage = storage
@@ -77,6 +85,8 @@ class ProjectDetailsWidget(QWidget):
         self._deleted = False
         self._pending_cover_path: Path | None = None
         self._pending_cover_removed = False
+        self.pending_documents = documents_core.PendingDocumentChanges()
+        self._show_document_extensions = True
 
         layout = QVBoxLayout(self)
         self.name_label = QLabel(self.project.name)
@@ -89,10 +99,10 @@ class ProjectDetailsWidget(QWidget):
         self.tabs = QTabWidget()
         layout.addWidget(self.tabs, 1)
 
-
         self._build_overview_tab()
         self._build_journal_tab()
         self._build_tasks_tabs()
+        self._build_documents_tab()
 
         button_row = QHBoxLayout()
         self.delete_btn = QPushButton(tr("common.delete"))
@@ -108,7 +118,6 @@ class ProjectDetailsWidget(QWidget):
             close_btn = QPushButton(tr("common.close"))
             close_btn.clicked.connect(self._on_close_clicked)
             button_row.addWidget(close_btn)
-
 
         if initial_tab_index is not None:
             self.tabs.setCurrentIndex(initial_tab_index)
@@ -127,15 +136,12 @@ class ProjectDetailsWidget(QWidget):
 
         self._last_saved_snapshot = self._make_snapshot()
 
-
-
-
-
-
-
-
-
-
+        if auto_add_document:
+            # A widget-hierarchia teljes felépülése UTÁN indítjuk a
+            # fájlválasztót, ugyanazon okból, mint a borítókép-választónál
+            # (lásd _on_choose_cover) - itt egy körrel távolabbról, a Fájl
+            # menüből induló hívás miatt, ezért külön singleShot.
+            QTimer.singleShot(0, self._on_add_document)
 
     # ---------- Áttekintés ----------
     def _build_overview_tab(self) -> None:
@@ -151,7 +157,7 @@ class ProjectDetailsWidget(QWidget):
             "border: 1px solid #d0d3d9; border-radius: 6px;"
             "background-color: #eef0f3; color: #888;"
         )
-        
+
         cover_row.addWidget(self.cover_preview)
 
         cover_buttons = QVBoxLayout()
@@ -169,9 +175,6 @@ class ProjectDetailsWidget(QWidget):
         form.addRow("Borítókép", cover_row)
 
         self._reload_cover_preview()
-
-
-
 
         self.purpose_edit = QPlainTextEdit(self.project.purpose)
         self.purpose_edit.setFixedHeight(100)
@@ -211,8 +214,6 @@ class ProjectDetailsWidget(QWidget):
 
         self.tabs.addTab(tab, tr("project.tab.overview"))
 
-
-
     def _reload_cover_preview(self, override_path: Path | str | None = None) -> None:
         path = override_path or self.project.photo_path
         if path and Path(path).exists():
@@ -229,11 +230,6 @@ class ProjectDetailsWidget(QWidget):
                 return
         self.cover_preview.setPixmap(QPixmap())
         self.cover_preview.setText("Nincs borítókép")
-
-
-    
-   
-
 
     def _on_choose_cover(self) -> None:
         # A dialógust csak a kattintás eseményének teljes lezárása UTÁN
@@ -282,7 +278,6 @@ class ProjectDetailsWidget(QWidget):
         self.project.photo = None
         self._reload_cover_preview()
 
-
     def _reload_milestones(self) -> None:
         self.milestone_list.clear()
         for m in self.project.milestones:
@@ -325,7 +320,6 @@ class ProjectDetailsWidget(QWidget):
 
         self.tabs.addTab(tab, tr("project.tab.journal"))
 
-    
     def _on_new_journal_entry(self) -> None:
         html = self.journal_editor.toHtml()
         cursor = self.journal_editor.textCursor()
@@ -407,13 +401,11 @@ class ProjectDetailsWidget(QWidget):
             target_list.addItem(item)
             target_list.setItemWidget(item, row)
 
-
-
     def _on_add_task(self) -> None:
         title = self.new_task_edit.text().strip()
         if not title:
             return
-        
+
         dlg = TaskEditDialog(self, title=title)
         if dlg.exec() != QDialog.DialogCode.Accepted:
             return
@@ -443,7 +435,9 @@ class ProjectDetailsWidget(QWidget):
             if t.id == task_id:
                 t.status = TaskStatus.DONE if checked else TaskStatus.IN_PROGRESS
                 t.completed_at = (
-                    datetime.now().astimezone().strftime("%Y.%m.%d %H:%M") if checked else None
+                    datetime.now().astimezone().strftime("%Y.%m.%d %H:%M")
+                    if checked
+                    else None
                 )
                 break
         self._reload_tasks()
@@ -461,8 +455,6 @@ class ProjectDetailsWidget(QWidget):
     def _on_task_delete(self, task_id: int) -> None:
         self.tasks = [t for t in self.tasks if t.id != task_id]
         self._reload_tasks()
-
-
 
     def _on_task_move(self, task_id: int, direction: int) -> None:
         pending_indices = [
@@ -483,17 +475,243 @@ class ProjectDetailsWidget(QWidget):
         self.tasks[i], self.tasks[j] = self.tasks[j], self.tasks[i]
         self._reload_tasks()
 
+    # ---------- Dokumentumok ----------
+    def _build_documents_tab(self) -> None:
+        tab = QWidget()
+        layout = QVBoxLayout(tab)
 
+        self.documents_stack = QStackedWidget()
+        layout.addWidget(self.documents_stack, 1)
 
+        # --- Üres állapot: nagy, hívogató feltöltés-gomb ---
+        empty_page = QWidget()
+        empty_layout = QVBoxLayout(empty_page)
+        empty_layout.addStretch(1)
+        empty_upload_btn = QPushButton(tr("project.document.upload_first"))
+        empty_upload_btn.clicked.connect(self._on_add_document)
+        empty_layout.addWidget(empty_upload_btn, 0, Qt.AlignmentFlag.AlignCenter)
+        empty_layout.addStretch(1)
+        self.documents_stack.addWidget(empty_page)
 
+        # --- Van tartalom: kompakt eszköztár + lista ---
+        list_page = QWidget()
+        list_layout = QVBoxLayout(list_page)
 
+        toolbar_row = QHBoxLayout()
+        add_doc_btn = QPushButton(tr("project.document.add"))
+        add_doc_btn.clicked.connect(self._on_add_document)
+        toolbar_row.addWidget(add_doc_btn)
+        toolbar_row.addStretch(1)
+        list_layout.addLayout(toolbar_row)
 
+        self.documents_list = QListWidget()
+        list_layout.addWidget(self.documents_list, 1)
+        self.documents_stack.addWidget(list_page)
 
+        self.tabs.addTab(tab, tr("project.tab.documents"))
+        self._reload_documents()
 
+    def _reload_documents(self) -> None:
+        filenames = documents_core.effective_document_list(
+            self.project, self.pending_documents
+        )
 
-    
+        self.documents_list.clear()
+        for filename in filenames:
+            row = DocumentRowWidget(
+                filename, show_extension=self._show_document_extensions
+            )
+            row.open_requested.connect(self._on_document_open)
+            row.rename_requested.connect(self._on_document_rename)
+            row.delete_requested.connect(self._on_document_delete)
 
-    # ---------- Mentés / Törlés ----------
+            item = QListWidgetItem()
+            item.setSizeHint(row.sizeHint())
+            self.documents_list.addItem(item)
+            self.documents_list.setItemWidget(item, row)
+
+        self.documents_stack.setCurrentIndex(1 if filenames else 0)
+
+    def _on_add_document(self) -> None:
+        # A fájlválasztót a kattintás eseményének lezárása UTÁN nyitjuk meg,
+        # ugyanazon okból, mint a borítókép-választónál (lásd _on_choose_cover).
+        QTimer.singleShot(0, self._open_document_file_dialog)
+
+    def _open_document_file_dialog(self) -> None:
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            tr("project.document.choose_file_title"),
+            "",
+            "",
+            options=QFileDialog.Option.DontUseNativeDialog,
+        )
+        if not file_path:
+            return
+
+        source = Path(file_path).resolve()
+        self._try_add_document(source)
+
+    def _try_add_document(self, source: Path, *, overwrite: bool = False) -> None:
+        try:
+            documents_core.request_add_document(
+                self.pending_documents, self.project, source, overwrite=overwrite
+            )
+        except FileExistsError:
+            self._resolve_document_conflict(
+                source.name,
+                on_overwrite=lambda: self._try_add_document(source, overwrite=True),
+                on_new_name=lambda new_name: self._try_add_document_as(
+                    source, new_name
+                ),
+            )
+            return
+        self._reload_documents()
+
+    def _try_add_document_as(
+        self, source: Path, new_name: str, *, overwrite: bool = False
+    ) -> None:
+        """Hozzáadás egyedi néven: a forrás fájl tartalma marad, csak a cél
+        fájlnév más, mint amit request_add_document a forrás nevéből venne.
+        """
+        try:
+            documents_core.request_add_document(
+                self.pending_documents,
+                self.project,
+                source,
+                overwrite=overwrite,
+                target_name=new_name,
+            )
+        except FileExistsError:
+            self._resolve_document_conflict(
+                new_name,
+                on_overwrite=lambda: self._try_add_document_as(
+                    source, new_name, overwrite=True
+                ),
+                on_new_name=lambda picked_name: self._try_add_document_as(
+                    source, picked_name
+                ),
+            )
+            return
+        self._reload_documents()
+
+    def _on_document_open(self, filename: str) -> None:
+        if filename in self.pending_documents.additions:
+            path = self.pending_documents.additions[filename]
+        else:
+            path = self.storage.document_path(self.project.path, filename)
+
+        if not path.exists():
+            QMessageBox.warning(
+                self,
+                tr("project.document.open_error_title"),
+                tr("project.document.open_error_text", name=filename),
+            )
+            return
+
+        suffix = path.suffix.lower()
+        if suffix in (".md", ".txt"):
+            self._open_text_preview(path, filename)
+        else:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
+
+    def _open_text_preview(self, path: Path, filename: str) -> None:
+        dlg = QDialog(self)
+        dlg.setWindowTitle(filename)
+        dlg.resize(600, 500)
+        layout = QVBoxLayout(dlg)
+
+        viewer = QTextEdit()
+        viewer.setReadOnly(True)
+        viewer.setPlainText(path.read_text(encoding="utf-8", errors="replace"))
+        layout.addWidget(viewer, 1)
+
+        close_btn = QPushButton(tr("common.close"))
+        close_btn.clicked.connect(dlg.accept)
+        layout.addWidget(close_btn, 0, Qt.AlignmentFlag.AlignRight)
+
+        dlg.exec()
+
+    def _on_document_rename(self, filename: str) -> None:
+        new_name = self._ask_new_document_name(filename)
+        if not new_name or new_name == filename:
+            return
+        self._try_rename_document(filename, new_name)
+
+    def _ask_new_document_name(self, current_filename: str) -> str | None:
+        """Külön mezős átnevező dialógus (név + kiterjesztés) - lásd
+        DocumentRenameDialog docstringjét arról, miért nem QInputDialog.
+
+        A "Kiterjesztés megjelenítése" checkbox állapota megosztott a
+        Dokumentumok tab listájával: elfogadás esetén a dialógusban
+        beállított érték lesz az új közös állapot, és a lista is frissül.
+        """
+        dlg = DocumentRenameDialog(
+            current_filename, self, show_extension=self._show_document_extensions
+        )
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return None
+
+        if dlg.new_show_extension() != self._show_document_extensions:
+            self._show_document_extensions = dlg.new_show_extension()
+            self._reload_documents()
+        return dlg.new_filename()
+
+    def _try_rename_document(
+        self, current_filename: str, new_filename: str, *, overwrite: bool = False
+    ) -> None:
+        try:
+            documents_core.request_rename_document(
+                self.pending_documents,
+                self.project,
+                current_filename,
+                new_filename,
+                overwrite=overwrite,
+            )
+        except FileExistsError:
+            self._resolve_document_conflict(
+                new_filename,
+                on_overwrite=lambda: self._try_rename_document(
+                    current_filename, new_filename, overwrite=True
+                ),
+                on_new_name=lambda picked_name: self._try_rename_document(
+                    current_filename, picked_name
+                ),
+            )
+            return
+        self._reload_documents()
+
+    def _on_document_delete(self, filename: str) -> None:
+        buttons = QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        res = QMessageBox.warning(
+            self,
+            tr("project.document.delete_confirm_title"),
+            tr("project.document.delete_confirm_text", name=filename),
+            buttons,
+        )
+        if res != QMessageBox.StandardButton.Yes:
+            return
+        documents_core.request_remove_document(
+            self.pending_documents, self.project, filename
+        )
+        self._reload_documents()
+
+    def _resolve_document_conflict(
+        self, filename, *, on_overwrite, on_new_name
+    ) -> None:
+        """Ütközés-dialógus megjelenítése, majd a választás alapján a megfelelő
+        callback meghívása. 'Új név' esetén újra megkérdezi a fájlnevet.
+        """
+        dlg = DocumentConflictDialog(filename, self)
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        if dlg.choice() == "overwrite":
+            on_overwrite()
+        elif dlg.choice() == "new_name":
+            new_name = self._ask_new_document_name(filename)
+            if new_name:
+                on_new_name(new_name)
+
     def _collect_project_from_form(self) -> None:
         self.project.purpose = self.purpose_edit.toPlainText().strip()
         self.project.description = self.description_edit.text().strip()
@@ -505,11 +723,17 @@ class ProjectDetailsWidget(QWidget):
         self._collect_project_from_form()
 
         if self._pending_cover_path is not None:
-            rel_path = self.storage.set_project_cover(self.project.path, self._pending_cover_path)
+            rel_path = self.storage.set_project_cover(
+                self.project.path, self._pending_cover_path
+            )
             self.project.photo = rel_path
         elif self._pending_cover_removed:
             self.storage.remove_project_cover(self.project.path)
             self.project.photo = None
+
+        documents_core.commit_pending_documents(
+            self.storage, self.project, self.pending_documents
+        )
 
         self.storage.write_project(self.project)
         self.storage.write_journal(self.project.path, self.journal_editor.toHtml())
@@ -520,7 +744,7 @@ class ProjectDetailsWidget(QWidget):
 
         self.project_changed.emit()
         self._last_saved_snapshot = self._make_snapshot()
-
+        self._reload_documents()
 
     def _make_snapshot(self) -> tuple:
         """A jelenlegi (form + task-lista) állapot pillanatképe,
@@ -532,8 +756,10 @@ class ProjectDetailsWidget(QWidget):
             [t.to_dict() for t in self.tasks],
             self._pending_cover_path,
             self._pending_cover_removed,
+            dict(self.pending_documents.additions),
+            frozenset(self.pending_documents.removals),
+            dict(self.pending_documents.renames),
         )
-
 
     def confirm_close(self) -> bool:
         """Megerősítő kérdés mentetlen változásra.
@@ -548,12 +774,12 @@ class ProjectDetailsWidget(QWidget):
         (projektváltáskor / app-bezáráskor).
         """
 
-        #print(">>> confirm_close CALLED")    
+        # print(">>> confirm_close CALLED")
         # # A célja az volt, hogy lássuk:
 
         # egyáltalán meghívódik-e a confirm_close(), és ha igen, hányszor.
-        
-        #traceback.print_stack(limit=8)       # Importáld ha kell a hívási lánc nyomkövetéséhez
+
+        # traceback.print_stack(limit=8)       # Importáld ha kell a hívási lánc nyomkövetéséhez
         # segítségével utána azt is meg tudtuk nézni, ki hívta meg.
 
         current = self._make_snapshot()
@@ -634,8 +860,6 @@ class ProjectDetailsWidget(QWidget):
         self._deleted = True
         self.project_deleted.emit()
 
-
-
     def _journal_snapshot(self) -> tuple:
         """Stabil snapshot a Napló tartalmáról és formázásáról."""
         document = self.journal_editor.document()
@@ -665,7 +889,6 @@ class ProjectDetailsWidget(QWidget):
                             font.underline(),
                         )
                     )
-                    
 
                 iterator += 1
 
@@ -675,8 +898,6 @@ class ProjectDetailsWidget(QWidget):
         return tuple(blocks)
 
 
-
-
 class ProjectDialog(QDialog):
     """Vékony QDialog-héj a ProjectDetailsWidget köré ('Ablak' nézetmód)."""
 
@@ -684,18 +905,23 @@ class ProjectDialog(QDialog):
     project_deleted = Signal()
 
     def __init__(
-            self, 
-            storage: Storage, 
-            project_dir: Path, 
-            parent: QWidget | None = None,
-            initial_tab_index: int | None = None,
-        ):
-
+        self,
+        storage: Storage,
+        project_dir: Path,
+        parent: QWidget | None = None,
+        initial_tab_index: int | None = None,
+        auto_add_document: bool = False,
+    ):
         super().__init__(parent)
 
         self.details = ProjectDetailsWidget(
-            storage, project_dir, self, initial_tab_index=initial_tab_index)
-        
+            storage,
+            project_dir,
+            self,
+            initial_tab_index=initial_tab_index,
+            auto_add_document=auto_add_document,
+        )
+
         self.setWindowTitle(tr("project.details_title", name=self.details.project.name))
         self.resize(720, 580)
 
@@ -707,7 +933,6 @@ class ProjectDialog(QDialog):
         self.details.project_deleted.connect(self.accept)
         self.details.close_requested.connect(self.accept)
 
-    
     def closeEvent(self, event) -> None:
         """Az ablakkeret X gombja / Alt+F4 (nem Esc — az a reject()-en megy,
         és szándékosan marad kérdés nélküli, csendes elvetés)."""

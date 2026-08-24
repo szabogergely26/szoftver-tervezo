@@ -64,13 +64,10 @@ class Milestone:
         )
 
 
-
-
-
 class TaskStatus(Enum):
-    PENDING = "pending"          # Következő feladatok
+    PENDING = "pending"  # Következő feladatok
     IN_PROGRESS = "in_progress"  # Folyamatban lévő feladatok
-    DONE = "done"                # Elkészült feladatok
+    DONE = "done"  # Elkészült feladatok
 
 
 @dataclass
@@ -87,13 +84,13 @@ class TaskItem:
     title: str
     html: str
     status: TaskStatus = TaskStatus.PENDING
-    completed_at:  str | None = None
+    completed_at: str | None = None
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id, 
+            "id": self.id,
             "title": self.title,
-            "html": self.html, 
+            "html": self.html,
             "status": self.status.value,
             "completed_at": self.completed_at,
         }
@@ -115,6 +112,7 @@ class TaskItem:
             title = data["title"]
         else:
             from PySide6.QtGui import QTextDocumentFragment
+
             title = QTextDocumentFragment.fromHtml(html).toPlainText().strip() or "…"
 
         return TaskItem(
@@ -131,7 +129,6 @@ class TaskItem:
         return self.status == TaskStatus.DONE
 
 
-
 @dataclass
 class Project:
     """Egy projekt teljes metaadata (a project.json tartalma + a mappa útvonala)."""
@@ -145,6 +142,9 @@ class Project:
     start_date: str | None = None
     end_date: str | None = None
     milestones: list[Milestone] = field(default_factory=list)
+    documents: list[str] = field(
+        default_factory=list
+    )  # fájlnevek a projekt docs/ mappájában
 
     def to_dict(self) -> dict:
         return {
@@ -156,6 +156,7 @@ class Project:
             "start_date": self.start_date,
             "end_date": self.end_date,
             "milestones": [m.to_dict() for m in self.milestones],
+            "documents": self.documents,
         }
 
     @staticmethod
@@ -170,6 +171,7 @@ class Project:
             start_date=data.get("start_date"),
             end_date=data.get("end_date"),
             milestones=[Milestone.from_dict(m) for m in data.get("milestones", [])],
+            documents=data.get("documents", []),
         )
 
     @property
