@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - preview
   workflow_dispatch:
 
 jobs:
@@ -27,14 +28,24 @@ jobs:
         run: |
           ./packaging/deb/build_deb.sh
 
+      - name: Determine build channel (for artifact naming)
+        id: channel
+        run: |
+          CHANNEL="$(python3 -c "from version_info import BUILD_CHANNEL; print(BUILD_CHANNEL)")"
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+
       - name: Collect deb artifact
         run: |
           mkdir -p artifacts
           find . -type f -name "*.deb" -print -exec cp {} artifacts/ \;
           test -n "$(find artifacts -type f -name '*.deb' -print -quit)"
 
+      # A csatorna-specifikus artifact-név (tervezo-deb-main / tervezo-deb-preview)
+      # azért fontos, hogy a publish-apt-repo.yml (workflow_run triggerrel)
+      # mindig a helyes csatorna buildjéből töltse le a .deb-et, és a két
+      # csatorna artifact-ja ne írja felül egymást.
       - name: Upload deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tervezo-deb
+          name: tervezo-deb-${{ steps.channel.outputs.channel }}
           path: artifacts/*.deb
