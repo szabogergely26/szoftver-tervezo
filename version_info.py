@@ -19,5 +19,5 @@ patch (0.3.0 → 0.3.1): javítás, bugfix, apró finomítás — pl. a set_task
 
 """
 
-APP_VERSION = "0.6.1"
+APP_VERSION = "0.7.1"
 BUILD_CHANNEL = "preview"  # "dev" | "preview" | "main"
