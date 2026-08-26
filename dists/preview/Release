@@ -5,13 +5,13 @@ Codename: preview
 Architectures: all
 Components: main
 Description: APT repository for Tervezo (preview)
-Date: Wed, 26 Aug 2026 16:47:42 +0000
+Date: Wed, 26 Aug 2026 17:08:07 +0000
 MD5Sum:
- 746f25b98ce776000a14b8870c3be737              650 main/binary-all/Packages
- 4f0846b9bd8e6bb0c18e3f53d88b54d7              463 main/binary-all/Packages.gz
+ c94eaf1a9e86a2dcde76f9387f27621e              650 main/binary-all/Packages
+ c244f7c78ea94ca90e741b53e5187ed6              468 main/binary-all/Packages.gz
 SHA1:
- 03960a49b72f25d528d16317f4ab0a5a28fd00ba              650 main/binary-all/Packages
- da6dabc6dd052a5efee0a09c7cebcb27bae7f88a              463 main/binary-all/Packages.gz
+ 915cc79eeea2a145063053f08243b3f39f5767b7              650 main/binary-all/Packages
+ 9b8d9aa77c095fa17c1d61a7fef660d1312bc448              468 main/binary-all/Packages.gz
 SHA256:
- 50fe0fb8f5e01c91a62a7dc05251bd248ec191c23feff4be571816ba7e9935f1              650 main/binary-all/Packages
- 1b885d11c4cdd3babffa541357e7f7c0a39d670d0e70cbe3d4cf77f1b960c245              463 main/binary-all/Packages.gz
+ 708427c858f46a90d4f6b9242f7e11a482efaab1cac78aeeca3768e18f10fd26              650 main/binary-all/Packages
+ efd656ba3a2c48ff181c78a672a0300b3052f0a1f5d6c6ea9d47a4ad41551f9f              468 main/binary-all/Packages.gz
