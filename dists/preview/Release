@@ -1,0 +1,17 @@
+Origin: Tervezo
+Label: Tervezo
+Suite: preview
+Codename: preview
+Architectures: all
+Components: main
+Description: APT repository for Tervezo (preview)
+Date: Wed, 26 Aug 2026 09:27:18 +0000
+MD5Sum:
+ d9a3980f48add64d5b80b6d87fe74561              650 main/binary-all/Packages
+ fba21390bfb24615ccc130e14a43389e              462 main/binary-all/Packages.gz
+SHA1:
+ 579999aade6fd8910085829de7b6c84570e215ae              650 main/binary-all/Packages
+ ae19719c884450bf25536bad4cdec11289525fa3              462 main/binary-all/Packages.gz
+SHA256:
+ 86cd10f3458197555335cccf7738d2b019022a36c457790697fb337bd1847918              650 main/binary-all/Packages
+ fdcb13fe22267e0fb1f594d9a99ac87c0aecb4dd3ee12341539f964c5ef83aa0              462 main/binary-all/Packages.gz
