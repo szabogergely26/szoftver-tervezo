@@ -8,29 +8,29 @@ Codename: preview
 Architectures: all
 Components: main
 Description: APT repository for Tervezo (preview)
-Date: Wed, 26 Aug 2026 16:24:21 +0000
+Date: Wed, 26 Aug 2026 16:40:48 +0000
 MD5Sum:
- aa2e28a88550cacc6b53ea7cc957ce56              650 main/binary-all/Packages
- f8d68bc730e62dfb6c785ae195e76fc7              465 main/binary-all/Packages.gz
+ 851b76100c1bcb9bf2aff2f6207bf968              650 main/binary-all/Packages
+ da90229f77b671cb2aa79f28e1fac4e6              464 main/binary-all/Packages.gz
 SHA1:
- ca0cee5dcd2e2925c9ca3c66d0f2366a9eafc5f8              650 main/binary-all/Packages
- e3362c747baa94f4a15caa77aecad6fc9e845ba5              465 main/binary-all/Packages.gz
+ dbabc6dd306f855b25fd9c7cd2fa66349aec5bbf              650 main/binary-all/Packages
+ 48acf46090326f1c04d91848df51314c5e1dbc05              464 main/binary-all/Packages.gz
 SHA256:
- 594cb2efe49657e17e6a77e467a2792b2888f0349ff0db67d3ff8267eb119080              650 main/binary-all/Packages
- 63c35c02e7a272716879c5266630d95cd7cae18cea864cc90b794d3093081ebc              465 main/binary-all/Packages.gz
+ 52c089bd786b327c3e0cbcf32412f3a4a376922e35235e76d9e91b1eee9cf565              650 main/binary-all/Packages
+ f24776366b712c85897a330259e7337cb681cebd2b2df1964623bd0866c352da              464 main/binary-all/Packages.gz
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEEDbBN5bMugXTtFbUJgxxrrfGtn+0FAmqPEzUACgkQgxxrrfGt
-n+3XUg/9EchzXFpeMBJ7TzLmvw31xqy7FIZn/VFWEQJh/0zHJCyiWwSFzGDz8Ffp
-3OuTZEzsleYx690zc0g2KoYtDisShU5OQM4RX71Zv+4/SjannTvxc+vOKjuHgsQw
-EyDRwSnS0exKHumXYaOiLtuJjQu1WRkhgf7ld3/ayho+sHhBkcTYnSy/HBa6vzos
-eKz8caRiBxGNxFsPn/oV40Gl5r5Wqvarg8Uruh0ZF3xZveIgKSH1YoMp5J1s6s1q
-77ZoIjpBnL53m8Eqx5f40+S5D9uLUcAz/sRyz7Fhcg3rJZKH6QxU+xq1ATVq7fCC
-FdwCnA8BP3OG7XqLfd7P5tttyP0sTFUoq/MrzYBuH3IgHnElSkrY/tsOmfDiI8pG
-8UPeOy8wR5qoX9tYft9hLfNfGWXwyWYhoAcj1wtmGteoEBvZ3EHnvt7z2whM/EA0
-EqEEomcfvSmDMCZR4gSN8r49cCWyee93pJUuDvyuS+7CT5M02uO8G1KPOBkfzBrD
-CsF36f73VKnpIDMlx+wV+450jcF9rJ4olcCk6/ASdMbMyuzDyjBeHkmvKYCIhe/p
-kLCzz5Gq4pKSoZjU3pXLSHKud9Krg/oxbLSAM9Id/2+no4hPkEB9eUm5jb//B4FX
-t2z1vHEveqVkPsI9gbA/usaddEfJP1ofmCmW/w8qHDLIXN/D3rM=
-=UcMZ
+iQIzBAEBCgAdFiEEDbBN5bMugXTtFbUJgxxrrfGtn+0FAmqPFxAACgkQgxxrrfGt
+n+3H5g/8CotAC97dvJBr4Vey5hqBPzPPwfbJ4bGFFqC8vTA2ucTigDrF8GzUltd2
+D2CjXU4kTOoAgWXKCag/TCNsoCgkYToWIaRFG8SdUhFXfgVnNBL54+byLTeujcVd
+D/6gldOOrrRZ6cWNAnSUzTYyzRAsKzIzO8LwMvKWYD0tA80GlYtLZ3twDKm3an2o
+vKCCxd9qrh/Q5uRIYmqCXkN5AC9cEi7KJDWnCfw1CIWiuj4R72Rl/zrhAclpj40V
+H5T4vKulJ2LhSr33PXs0f2/d8luhjEt9yzHpYY6hlWrLAoY9ZLVMLyaSKR4HxYu3
+/1TZKhd8t6WBkfm10dMYKz/a+8vleBrzsaKiw3+12nxEVElpATF/w37lY0FST+4V
+ZwZ18hoUkk6UfUiwUXCDSYBja1KoOnNnsyGe9S6pCREKMVaDv1tyfZi5XfpkNu4z
+iTL99HZjY6/fTkqKZ40DEynd7DL3MwlGnkEBXUqPmy5fKTcsEHzA6J0odn8ewtEz
+BAgrwuaDcUqL9k/ve9A0FABDU1dBmoOtFZ2b97O4Xz+C+thLAellt2srgLk2ui2A
+u0coOvK1kd2NgVZuO9N5QsyP3h8nGBo9lBuMUbKnW8mYHVQvrHdNsSlO0xIjqOwp
+ESVPMIqsXCirl4Sqo/UBEGEOJ+noAiXmSftD4BM57VFJoCoIl2I=
+=Cmt8
 -----END PGP SIGNATURE-----
