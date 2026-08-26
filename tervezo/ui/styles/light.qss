@@ -483,3 +483,23 @@ QToolTip {
 #StatusLegendIconButton:pressed {
     background-color: #c5d2e8;
 }
+
+
+
+/* ---------- Névjegy – kiadási csatorna jelvény ---------- */
+
+#ChannelBadgeStable {
+    color: #27ae60;
+    font-weight: bold;
+    border: 1px solid #27ae60;
+    border-radius: 4px;
+    padding: 3px 10px;
+}
+
+#ChannelBadgePreview {
+    color: #c0392b;
+    font-weight: bold;
+    border: 1px solid #c0392b;
+    border-radius: 4px;
+    padding: 3px 10px;
+}

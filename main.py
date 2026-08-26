@@ -42,6 +42,7 @@ log_raw(SEPARATOR)
 logging.info(f"Build channel: {BUILD_CHANNEL}")
 logging.info(f"Verzió: {APP_VERSION}")
 
+
 def main() -> int:
     app = QApplication(sys.argv)
     app.setOrganizationName("Tervezo")
@@ -54,12 +55,10 @@ def main() -> int:
     logging.info("Téma alkalmazva")
 
     app.setWindowIcon(QIcon(str(ICON_PATH)))  # ez adja a tálca-/taskbar-ikont
-    
-    logging.info("Nyelv alkalmazva, MainWindow létrehozása előtt")
-    
-    apply_saved_language()
 
-    
+    logging.info("Nyelv alkalmazva, MainWindow létrehozása előtt")
+
+    apply_saved_language()
 
     win = MainWindow()
     logging.info("MainWindow létrejött, show() hívás előtt")
