@@ -87,8 +87,8 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "widgets.task_title_label": {"hu": "Cím:", "en": "Title:"},
     # ----------- Főablak ---------------
     "main.window_title": {
-        "hu": "Szoftver-Tervező -Előzetes",
-        "en": "Software-Designer -Preview",
+        "hu": "Szoftver-Tervező -Fejlesztői",
+        "en": "Software-Designer -Developer",
     },
     "main.menu.file": {"hu": "Fájl", "en": "File"},
     "main.menu.help": {"hu": "Súgó", "en": "Help"},
