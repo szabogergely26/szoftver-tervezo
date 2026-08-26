@@ -4,8 +4,15 @@ import sys
 
 from PySide6 import __version__ as PYSIDE_VERSION
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QDesktopServices, QPixmap
-from PySide6.QtWidgets import QDialog, QDialogButtonBox, QLabel, QVBoxLayout, QWidget
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QLabel,
+    QHBoxLayout,
+    QVBoxLayout,
+    QWidget,
+)
 
 from config import APP_VERSION, BUILD_CHANNEL, BUILD_COMMIT, BUILD_DATE, ICON_PATH
 from settings.translations import tr
@@ -46,21 +53,18 @@ class AboutDialog(QDialog):
         version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(version_label)
 
+        # Csatorna felirat formázása:
         channel_label = QLabel(self._channel_text())
         channel_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        channel_label.setStyleSheet("color: #888;")
-        layout.addWidget(channel_label)
+        channel_label.setObjectName(
+            "ChannelBadgeStable" if BUILD_CHANNEL == "stable" else "ChannelBadgePreview"
+        )
 
-        developer_label = QLabel(
-            f'<a href="{DEVELOPER_URL}">'
-            f"{tr('about.developer', name=DEVELOPER_NAME)}</a>"
-        )
-        developer_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        developer_label.setOpenExternalLinks(False)
-        developer_label.linkActivated.connect(
-            lambda url: QDesktopServices.openUrl(url)
-        )
-        layout.addWidget(developer_label)
+        channel_row = QHBoxLayout()
+        channel_row.addStretch()
+        channel_row.addWidget(channel_label)
+        channel_row.addStretch()
+        layout.addLayout(channel_row)
 
         build_label = QLabel(
             tr("about.build_info", commit=BUILD_COMMIT, date=BUILD_DATE)

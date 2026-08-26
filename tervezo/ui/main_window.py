@@ -1,3 +1,4 @@
+# - FIGYELEM!: Az alkalmazás neve (címsoron lévő) a translation_ui -ből jön
 from __future__ import annotations
 
 import tempfile
