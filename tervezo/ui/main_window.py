@@ -47,6 +47,8 @@ from .new_project_dialog import NewProjectDialog
 from .project_dialog import DOCUMENTS_TAB_INDEX, ProjectDetailsWidget, ProjectDialog
 from .status_legend_widget import StatusLegendWidget
 from .task_overview_popup import TaskOverviewPopup
+from .toast_notification import ToastNotification
+
 from .widgets import ProjectCard, ProjectPickerDialog
 
 
@@ -122,6 +124,7 @@ class MainWindow(QMainWindow):
         # azután érdemes véglegesíteni, hogy a MainWindow felvette a végleges
         # (pl. maximalizált) méretét, ezért egy körrel később futtatjuk.
         QTimer.singleShot(0, self.status_legend._clamp_into_parent)
+        self.toast = ToastNotification(self)
 
     def _reset_sidebar_placeholder(self) -> None:
         self._sidebar_details = None
@@ -148,6 +151,8 @@ class MainWindow(QMainWindow):
         super().resizeEvent(event)
         if hasattr(self, "status_legend"):
             self.status_legend._clamp_into_parent()
+        if hasattr(self, "toast"):
+            self.toast.reposition()
 
     def _on_splitter_moved(self, _pos: int, _index: int) -> None:
         # Csak akkor mentjük el, ha ténylegesen látszik az oldalsáv –
@@ -468,6 +473,9 @@ class MainWindow(QMainWindow):
         self.migrate_covers_action.setText(tr("main.action.migrate_covers"))
 
         self.in_progress_label.refresh()
+
+    def show_toast(self, message: str) -> None:
+        self.toast.show_message(message)
 
     # ---------- Kártyák ----------
     def reload_cards(self) -> None:
