@@ -99,6 +99,10 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "main.action.new_project_toolbar": {"hu": "+ Új projekt", "en": "+ New project"},
     "main.status_bar.next_task": {"hu": "Következő feladat", "en": "Next task"},
+    "main.status_bar.in_progress_overview": {
+        "hu": "Folyamatban lévő feladatok",
+        "en": "Tasks in progress",
+    },
     # --- Megnyitás / Mentés / Beállítások
     "main.action.open": {"hu": "Megnyitás", "en": "Open"},
     "main.action.save": {"hu": "Mentés", "en": "Save"},
@@ -391,6 +395,10 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "Upcoming tasks",
     },
     "main.status_bar.in_progress": {"hu": "Folyamatban:", "en": "In progress"},
+    "main.status_bar.in_progress_popup_title": {
+        "hu": "Folyamatban lévő feladatok",
+        "en": "Tasks in progress",
+    },
 }
 
 

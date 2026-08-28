@@ -47,10 +47,14 @@ class TaskOverviewPopup(QFrame):
         storage: Storage,
         workspace: Workspace,
         parent: QWidget | None = None,
+        statuses: tuple[TaskStatus, ...] = (TaskStatus.PENDING, TaskStatus.IN_PROGRESS),
+        title_key: str = "main.status_bar.popup_title",
     ):
         super().__init__(parent, Qt.WindowType.Popup)
         self.storage = storage
         self.workspace = workspace
+        self._statuses = statuses
+        self._title_key = title_key
 
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setObjectName("TaskOverviewPopup")
@@ -85,7 +89,7 @@ class TaskOverviewPopup(QFrame):
 
         # Saját, belső "címsor" a natív Popup ablak-típus miatt (annak
         # nincs OS-szintű díszítése/címsora).
-        header = QLabel(tr("main.status_bar.popup_title"))
+        header = QLabel(tr(self._title_key))
         header.setObjectName("TaskOverviewHeader")
         header.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         card_layout.addWidget(header)
@@ -118,8 +122,9 @@ class TaskOverviewPopup(QFrame):
         for project_dir in self.storage.list_projects(self.workspace.projects_dir):
             project = self.storage.read_project(project_dir)
             tasks = [
-                t for t in self.storage.read_tasks(project_dir)
-                if t.status in (TaskStatus.PENDING, TaskStatus.IN_PROGRESS)
+                t
+                for t in self.storage.read_tasks(project_dir)
+                if t.status in self._statuses
             ]
             if not tasks:
                 continue
