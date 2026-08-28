@@ -780,6 +780,10 @@ class ProjectDetailsWidget(QWidget):
         self._last_saved_snapshot = self._make_snapshot()
         self._reload_documents()
 
+        main_window = self.window()
+        if hasattr(main_window, "show_toast"):
+            main_window.show_toast(tr("project.changes_saved"))
+
     def _make_snapshot(self) -> tuple:
         """A jelenlegi (form + task-lista) állapot pillanatképe,
         hogy bezáráskor össze tudjuk hasonlítani a legutóbb mentettel."""

@@ -134,6 +134,10 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "hu": "A következő projektek megvannak nálad, de nem szerepelnek a most importált mentésben:\n\n{names}\n\nMegtartsuk őket (Igen), vagy töröljük (Nem)?",
         "en": "The following projects exist locally but are not part of this import:\n\n{names}\n\nKeep them (Yes) or delete them (No)?",
     },
+    "project.changes_saved": {
+        "hu": "Változtatások mentve",
+        "en": "Changes saved",
+    },
     # --- Beállítások
     "main.action.settings": {"hu": "Beállítások", "en": "Settings"},
     # --- Kilépés
