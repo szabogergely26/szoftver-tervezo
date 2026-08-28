@@ -1,0 +1,3 @@
+Package: ${PACKAGE_NAME}
+Pin: release n=${APT_SUITE}
+Pin-Priority: 990

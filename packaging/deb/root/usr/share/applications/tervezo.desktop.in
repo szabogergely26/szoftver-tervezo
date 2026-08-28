@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=Tervező
+Name=${APP_DISPLAY_NAME}
 Comment[hu_HU]=Projekt-tervező és feladatkövető alkalmazás
 Comment=Project planning and task tracking application
-Exec=tervezo
-Icon=tervezo
+Exec=${PACKAGE_NAME}
+Icon=${PACKAGE_NAME}
 Categories=Office;Development;
 StartupNotify=true
 Terminal=false

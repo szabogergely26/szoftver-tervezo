@@ -12,6 +12,11 @@ PROJECT_FILE = "project.json"
 TASKS_FILE = "feladatok.json"
 JOURNAL_FILE = "naplo.html"
 ASSETS_DIR = "assets"
+DOCS_DIR = "docs"
+
+# A "Sablon feladatok" dialógus tételeit tartalmazó, kódtól független config.
+# Új tétel felvételéhez elég ezt a JSON fájlt bővíteni, kódmódosítás nem kell.
+TEMPLATE_TASKS_FILE = Path(__file__).parent / "sablon_feladatok.json"
 
 
 class Storage:
@@ -104,7 +109,6 @@ class Storage:
         shutil.copy2(photo_source, target)
         return f"{ASSETS_DIR}/{target.name}"
 
-
     def set_project_cover(self, project_dir: Path, photo_source: Path) -> str:
         """Külső képfájl bemásolása a projekt assets mappájába (borítókép).
 
@@ -123,8 +127,67 @@ class Storage:
             for old in assets_dir.glob("cover.*"):
                 old.unlink()
 
+    # ---------- Dokumentumok (docs/) ----------
+    def add_document(
+        self,
+        project_dir: Path,
+        source_file: Path,
+        *,
+        overwrite: bool = False,
+        target_name: str | None = None,
+    ) -> str:
+        """Külső fájl bemásolása a projekt docs/ mappájába.
 
-    
+        A cél fájlnév alapesetben a forrás fájl neve, de target_name-mel
+        felülírható (pl. névütközés esetén a felhasználó más nevet adott
+        meg). Ha már létezik ilyen nevű dokumentum és overwrite=False,
+        FileExistsError-t dob — a UI-nak ilyenkor meg kell kérdeznie a
+        felhasználót (felülírás / új név).
+        """
+        docs_dir = project_dir / DOCS_DIR
+        docs_dir.mkdir(exist_ok=True)
+        target = docs_dir / (target_name or source_file.name)
+        if target.exists() and not overwrite:
+            raise FileExistsError(target)
+        shutil.copy2(source_file, target)
+        return target.name
+
+    def remove_document(self, project_dir: Path, filename: str) -> None:
+        """Egy dokumentum fájl törlése a docs/ mappából.
+
+        Ha a fájl már nincs a lemezen (pl. kézzel törölték), nem hiba —
+        a JSON-bejegyzés eltávolítását a hívónak (Project.documents
+        frissítése + write_project) kell elvégeznie ezután.
+        """
+        target = project_dir / DOCS_DIR / filename
+        if target.exists():
+            target.unlink()
+
+    def rename_document(
+        self,
+        project_dir: Path,
+        old_filename: str,
+        new_filename: str,
+        *,
+        overwrite: bool = False,
+    ) -> str:
+        """Dokumentum fájl átnevezése a docs/ mappán belül.
+
+        Ha a cél név már foglalt (más dokumentum) és overwrite=False,
+        FileExistsError-t dob. A JSON-bejegyzés frissítését a hívónak kell
+        elvégeznie (Project.documents-ben a régi nevet a újra cserélve).
+        """
+        docs_dir = project_dir / DOCS_DIR
+        old_path = docs_dir / old_filename
+        new_path = docs_dir / new_filename
+        if new_path.exists() and not overwrite:
+            raise FileExistsError(new_path)
+        old_path.rename(new_path)
+        return new_filename
+
+    def document_path(self, project_dir: Path, filename: str) -> Path:
+        """Egy dokumentum abszolút útvonala (megnyitáshoz)."""
+        return project_dir / DOCS_DIR / filename
 
     def delete_project(self, project_dir: Path) -> None:
         """Teljes projekt-mappa törlése. A megerősítést a UI-nak kell kérnie előtte."""
@@ -168,6 +231,23 @@ class Storage:
 
     def next_task_id(self, tasks: list[TaskItem]) -> int:
         return max((t.id for t in tasks), default=0) + 1
+
+    def read_template_tasks(self) -> list[dict]:
+        """A 'Sablon feladatok' dialógus tételei (sablon_feladatok.json-ból).
+
+        Bővítés: a JSON fájlba felvett új {"id": ..., "title": ...} tétel
+        automatikusan megjelenik a dialógusban, kódmódosítás nélkül.
+        """
+        if not TEMPLATE_TASKS_FILE.exists():
+            return []
+        return json.loads(TEMPLATE_TASKS_FILE.read_text(encoding="utf-8"))
+
+    def write_template_tasks(self, items: list[dict]) -> None:
+        """A sablon-tétel lista elmentése (Beállítások > Feladatok lapról)."""
+        TEMPLATE_TASKS_FILE.write_text(
+            json.dumps(items, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
 
     def parse_task_list(self, raw: str) -> list[str]:
         """A Varázsló vesszővel elválasztott feladatlista-mezőjének szétbontása."""

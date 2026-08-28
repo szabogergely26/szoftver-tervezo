@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
-cd /usr/share/tervezo
+cd /usr/share/${PACKAGE_NAME}
 exec /usr/bin/python3 ./main.py

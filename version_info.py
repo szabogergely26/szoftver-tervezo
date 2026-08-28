@@ -9,13 +9,15 @@ Build/branch-váltás után ELLENŐRIZD a config.py-t is: a BUILD_CHANNEL
 gyökere alatti Projektek/, egyébként: ~/.config/szoftvertervezo/).
 
 
+Új build / nagy funkció / átalakítás: 0.3.0 --> 1.3.0  - major
+Kis átalakítás / apróbb újítás: 0.3.0 --> 0.4.0 - minor
+Patch / javítás: 0.3.0 --> 0.3.1 - patch
 
-0.3.0 → 0.3.1 (patch) vagy 0.3.0 → 0.4.0 (minor, mert egy komplett alrendszer)
+major (0.x.x → 1.0.0): nagy funkció vagy átalakítás — pl. egy komplett új alrendszer (témarendszer, checklist-feature, profil-architektúra), vagy olyan változás, ami érdemben átalakítja, hogyan használod az appot.
+minor (0.3.0 → 0.4.0): kisebb újítás vagy bővítés a meglévő rendszeren belül — pl. a mai "Sablon feladatok" funkció, vagy az "Elkészült feladatok részletnézete + duplakatt" — új képesség, de nem alakítja át az egész appot.
+patch (0.3.0 → 0.3.1): javítás, bugfix, apró finomítás — pl. a set_task_done bugfix, egy lint-tisztítás, vagy a mai kör-import hiba javítása, ha az önállóan menne ki.
 
-Megjegyzés: 0.4.0 a helyes választás — a verziószámozás logikája szerint az új funkciót (témarendszer) viszi a minor bump, 
-a hozzá tartozó apró javítások (lint, set_task_done fix) pedig ugyanannak a release-nek a részei, nem külön patch-verziót érdemelnek. 
-A 0.4.1 csak akkor jönne, ha a 0.4.0 kiadása UTÁN derülne ki egy hiba, amit gyorsan javítani kell.
 """
 
-APP_VERSION = "0.5.0"
-BUILD_CHANNEL = "main"  # "dev" | "preview" | "main"
+APP_VERSION = "0.7.1"
+BUILD_CHANNEL = "preview"  # "dev" | "preview" | "main"

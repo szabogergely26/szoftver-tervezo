@@ -1,7 +1,7 @@
-/* ============================================================
+/* ================================================================================
    Tervező – világos téma
    Letisztult, halvány szürke-kék alapon semleges szürke/fekete accent színnel.
-   ============================================================ */
+   ================================================================================ */
 
 * {
     outline: none;
@@ -186,7 +186,8 @@ QHeaderView::section {
 /* ---------- Tabok ---------- */
 
 QTabWidget::pane {
-    border: 1px solid #d0d3d9;
+    border: 2px solid #b4b4b4;
+    border-bottom: 2px solid #696a6b;
     border-radius: 6px;
     background-color: #ffffff;
     top: -1px;
@@ -209,6 +210,39 @@ QTabBar::tab:selected {
 
 QTabBar::tab:hover:!selected {
     background-color: #e2e8f2;
+}
+
+/* Görgető nyilak, ha a tabsor nem fér ki */
+QTabBar QToolButton {
+    background-color: #eef0f3;
+    border: 1px solid #d0d3d9;
+    border-radius: 4px;
+}
+
+QTabBar QToolButton:hover {
+    background-color: #d5deee;
+    border-color: #b9c2d0;
+}
+
+QTabBar QToolButton:pressed {
+    background-color: #c5d2e8;
+}
+
+QTabBar QToolButton:disabled {
+    background-color: #f0f1f3;
+    border-color: #e0e2e6;
+}
+
+QTabBar QToolButton::left-arrow {
+    image: url({{TAB_ARROW_LEFT}});
+    width: 12px;
+    height: 12px;
+}
+
+QTabBar QToolButton::right-arrow {
+    image: url({{TAB_ARROW_RIGHT}});
+    width: 12px;
+    height: 12px;
 }
 
 /* ---------- ScrollBar ---------- */
@@ -448,4 +482,24 @@ QToolTip {
 
 #StatusLegendIconButton:pressed {
     background-color: #c5d2e8;
+}
+
+
+
+/* ---------- Névjegy – kiadási csatorna jelvény ---------- */
+
+#ChannelBadgeStable {
+    color: #27ae60;
+    font-weight: bold;
+    border: 1px solid #27ae60;
+    border-radius: 4px;
+    padding: 3px 10px;
+}
+
+#ChannelBadgePreview {
+    color: #c0392b;
+    font-weight: bold;
+    border: 1px solid #c0392b;
+    border-radius: 4px;
+    padding: 3px 10px;
 }

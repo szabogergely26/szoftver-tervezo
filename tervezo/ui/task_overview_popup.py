@@ -34,6 +34,7 @@ class TaskOverviewPopup(QFrame):
     """
 
     project_open_requested = Signal(object, int)  # (project_dir, tab_index)
+    task_changed = Signal()  # egy feladat állapota változott (pl. kész-re jelölve)
 
     # A shadow-nak "levegő" kell a top-level ablakon belül, különben a
     # blur/offset a window szélén levágódik (a QGraphicsDropShadowEffect
@@ -182,7 +183,8 @@ class TaskOverviewPopup(QFrame):
         self.storage.write_tasks(project_dir, tasks)
 
         self._populate()
+        self.task_changed.emit()
 
     def _on_task_label_clicked(self, project_dir: Path) -> None:
         self.close()
-        self.project_open_requested.emit(project_dir, 1)
+        self.project_open_requested.emit(project_dir, 2)

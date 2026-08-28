@@ -29,13 +29,11 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "settings.category.general": {"hu": "Általános", "en": "General"},
     "settings.category.appearance": {"hu": "Megjelenés", "en": "Appearance"},
     "settings.category.language": {"hu": "Nyelv", "en": "Language"},
-
     "settings.category.tasks": {"hu": "Feladatok", "en": "Tasks"},
-        "settings.general.view_mode.label": {
-            "hu": "Projekt megnyitás módja:",
-            "en": "Project open mode:",
-        },
-
+    "settings.general.view_mode.label": {
+        "hu": "Projekt megnyitás módja:",
+        "en": "Project open mode:",
+    },
     "settings.language.label": {"hu": "Nyelv:", "en": "Language:"},
     "settings.language.hungarian": {"hu": "Magyar", "en": "Hungarian"},
     "settings.language.english": {"hu": "English", "en": "English"},
@@ -51,16 +49,26 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "hu": "Feladatok háttérszolgáltatás és értesítések – hamarosan.\n(pl. email értesítés :D)",
         "en": "Task background service and notifications – coming soon.\n(e.g. email notifications :D)",
     },
-
-
+    "settings.tasks.template_tasks_label": {
+        "hu": 'Sablon feladatok listája (a projekteknél a "Sablon feladatok" '
+        "gombbal vehetők fel):",
+        "en": 'Template task list (available via the "Template tasks" '
+        "button on projects):",
+    },
+    "settings.tasks.add_btn": {"hu": "Hozzáadás", "en": "Add"},
+    "settings.tasks.edit_btn": {"hu": "Szerkesztés", "en": "Edit"},
+    "settings.tasks.remove_btn": {"hu": "Eltávolítás", "en": "Remove"},
+    "settings.tasks.title_prompt": {
+        "hu": "Feladat szövege:",
+        "en": "Task text:",
+    },
+    "settings.tasks.remove_confirm": {
+        "hu": "Biztosan eltávolítod ezt a tételt: „{title}”?",
+        "en": "Remove this item: \u201c{title}\u201d?",
+    },
     "settings.category.sidebar_mode": {"hu": "Oldalsáv", "en": "Sidebar"},
-
-    
     "settings.general.view_mode.dialog": {"hu": "Ablak", "en": "Window"},
     "settings.general.view_mode.sidebar": {"hu": "Oldalsáv", "en": "Sidebar"},
-
-
-
     # --- Általános ---
     "common.ok": {"hu": "OK", "en": "OK"},
     "common.cancel": {"hu": "Mégsem", "en": "Cancel"},
@@ -77,33 +85,37 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "project.close_discard_button": {"hu": "Elvetés", "en": "Discard"},
     "common.details": {"hu": "Részletek", "en": "Details"},
     "widgets.task_title_label": {"hu": "Cím:", "en": "Title:"},
-
     # ----------- Főablak ---------------
-    "main.window_title": {"hu": "Szoftver-Tervező", "en": "Software-Designer"},
+    "main.window_title": {
+        "hu": "Szoftver-Tervező -Előzetes",
+        "en": "Software-Designer -Preview",
+    },
     "main.menu.file": {"hu": "Fájl", "en": "File"},
     "main.menu.help": {"hu": "Súgó", "en": "Help"},
     "main.action.new_project": {"hu": "Új projekt", "en": "New project"},
+    "main.action.add_document": {
+        "hu": "Dokumentum hozzáadása...",
+        "en": "Add document...",
+    },
     "main.action.new_project_toolbar": {"hu": "+ Új projekt", "en": "+ New project"},
     "main.status_bar.next_task": {"hu": "Következő feladat", "en": "Next task"},
-
     # --- Megnyitás / Mentés / Beállítások
     "main.action.open": {"hu": "Megnyitás", "en": "Open"},
     "main.action.save": {"hu": "Mentés", "en": "Save"},
-
-
     # ------------ Munkaterület import/export
     "main.action.import_workspace": {"hu": "Importálás...", "en": "Import..."},
     "main.action.export_workspace": {"hu": "Exportálás...", "en": "Export..."},
-
     "main.export_error_title": {"hu": "Exportálási hiba", "en": "Export error"},
     "main.export_done_title": {"hu": "Exportálás kész", "en": "Export complete"},
     "main.export_done_text": {
         "hu": "A munkaterület mentése elkészült:\n{path}",
         "en": "Workspace export completed:\n{path}",
     },
-
     "main.import_error_title": {"hu": "Importálási hiba", "en": "Import error"},
-    "main.import_conflict_title": {"hu": "Ütköző projektek", "en": "Conflicting projects"},
+    "main.import_conflict_title": {
+        "hu": "Ütköző projektek",
+        "en": "Conflicting projects",
+    },
     "main.import_conflict_text": {
         "hu": "A következő projektek már léteznek, és felülíródnak:\n\n{names}\n\nFolytatod?",
         "en": "The following projects already exist and will be overwritten:\n\n{names}\n\nContinue?",
@@ -113,56 +125,57 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "hu": "A munkaterület visszaállítása megtörtént.",
         "en": "Workspace import completed.",
     },
-
     # Ütköző nevek:
-    "main.import_extra_title": {"hu": "Nem importált, meglévő projektek", "en": "Existing projects not in the import"},
+    "main.import_extra_title": {
+        "hu": "Nem importált, meglévő projektek",
+        "en": "Existing projects not in the import",
+    },
     "main.import_extra_text": {
         "hu": "A következő projektek megvannak nálad, de nem szerepelnek a most importált mentésben:\n\n{names}\n\nMegtartsuk őket (Igen), vagy töröljük (Nem)?",
         "en": "The following projects exist locally but are not part of this import:\n\n{names}\n\nKeep them (Yes) or delete them (No)?",
     },
-
-
-
-
-
-
     # --- Beállítások
     "main.action.settings": {"hu": "Beállítások", "en": "Settings"},
-
     # --- Kilépés
     "main.action.quit": {"hu": "Kilépés", "en": "Quit"},
-
-
-
     "main.toolbar.name": {"hu": "Eszköztár", "en": "Toolbar"},
     "main.project_exists": {
         "hu": "Már van ilyen nevű projekt.",
         "en": "A project with this name already exists.",
     },
-
     # -- Névjegy / About
     "main.action.about": {"hu": "Névjegy", "en": "About"},
-
     "main.sidebar.placeholder": {
         "hu": "Válassz egy projektet a bal oldali listából.",
         "en": "Select a project from the list on the left.",
     },
-
-
-
     # --- Eszközök , Napló ---
     "main.menu.tools": {"hu": "Eszközök", "en": "Tools"},
     "main.action.open_log": {"hu": "Napló megnyitása…", "en": "Open log…"},
-
-
-    
-
-
-
+    # --- Fedőkép migráció
+    "main.action.migrate_covers": {
+        "hu": "Fedőképek migrálása...",
+        "en": "Migrate cover images...",
+    },
+    "main.migrate_covers.title": {
+        "hu": "Fedőkép migráció",
+        "en": "Cover image migration",
+    },
+    "main.migrate_covers.none_found_text": {
+        "hu": "Nem található abszolút útvonalú borítókép — minden projekt rendben van.",
+        "en": "No cover image with an absolute path was found — all projects are fine.",
+    },
+    "main.migrate_covers.done_text": {
+        "hu": "Migráció kész.\n\nÉrintett projektek:\n{names}",
+        "en": "Migration complete.\n\nAffected projects:\n{names}",
+    },
     # --- Névjegy ---
     "about.title": {"hu": "Névjegy", "en": "About"},
     "about.version": {"hu": "Verzió: {version}", "en": "Version: {version}"},
-    "about.channel_dev": {"hu": "Fejlesztői build (DEV)", "en": "Development build (DEV)"},
+    "about.channel_dev": {
+        "hu": "Fejlesztői build (DEV)",
+        "en": "Development build (DEV)",
+    },
     "about.channel_preview": {"hu": "Előzetes build (Preview)", "en": "Preview build"},
     "about.channel_stable": {"hu": "Stabil kiadás", "en": "Stable release"},
     "about.developer": {"hu": "Fejlesztő: {name}", "en": "Developer: {name}"},
@@ -174,9 +187,6 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "hu": "Python {python_version} · PySide6 {pyside_version}",
         "en": "Python {python_version} · PySide6 {pyside_version}",
     },
-
-
-
     # --- Új projekt dialógus ---
     "new_project.title": {"hu": "Új projekt", "en": "New project"},
     "new_project.no_photo": {"hu": "Nincs kiválasztva", "en": "None selected"},
@@ -207,15 +217,20 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "hu": "Képek (*.png *.jpg *.jpeg *.webp)",
         "en": "Images (*.png *.jpg *.jpeg *.webp)",
     },
-
     # --- Projekt-részletek dialógus ---
     "project.tab.overview": {"hu": "Áttekintés", "en": "Overview"},
     "project.tab.journal": {"hu": "Napló", "en": "Journal"},
     "project.tab.next_tasks": {"hu": "Következő feladatok", "en": "Upcoming tasks"},
-    "project.tab.in_progress_tasks": {"hu": "Folyamatban lévő feladatok", "en": "In-progress tasks"},
+    "project.tab.in_progress_tasks": {
+        "hu": "Folyamatban lévő feladatok",
+        "en": "In-progress tasks",
+    },
     "project.tab.done_tasks": {"hu": "Elkészült feladatok", "en": "Completed tasks"},
-
-    "project.purpose_label": {"hu": "Mire jó a program:", "en": "What is the program for:"},
+    "project.tab.documents": {"hu": "Dokumentumok", "en": "Documents"},
+    "project.purpose_label": {
+        "hu": "Mire jó a program:",
+        "en": "What is the program for:",
+    },
     "project.description_label": {
         "hu": "Rövid leírás (kártyán):",
         "en": "Short description (on card):",
@@ -232,6 +247,63 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "hu": "Új feladat szövege...",
         "en": "New task text...",
     },
+    "project.template_tasks_btn": {
+        "hu": "Sablon feladatok...",
+        "en": "Template tasks...",
+    },
+    # --- Sablon feladatok dialógus ---
+    "template_tasks.title": {"hu": "Sablon feladatok", "en": "Template tasks"},
+    "template_tasks.description": {
+        "hu": "Válaszd ki, mely feladatokat szeretnéd felvenni a "
+        "Következő feladatok közé.",
+        "en": "Choose which tasks you'd like to add to the upcoming tasks list.",
+    },
+    "template_tasks.status_pending": {"hu": "már felvéve", "en": "already added"},
+    "template_tasks.status_in_progress": {"hu": "folyamatban", "en": "in progress"},
+    "template_tasks.status_done": {"hu": "kész", "en": "done"},
+    # --- Dokumentumok tab ---
+    "project.document.upload_first": {
+        "hu": "Új dokumentum feltöltése...",
+        "en": "Upload first document...",
+    },
+    "project.document.add": {"hu": "Dokumentum hozzáadása...", "en": "Add document..."},
+    "project.document.choose_file_title": {
+        "hu": "Dokumentum kiválasztása",
+        "en": "Choose document",
+    },
+    "project.document.open_error_title": {
+        "hu": "Megnyitási hiba",
+        "en": "Open error",
+    },
+    "project.document.open_error_text": {
+        "hu": "A(z) „{name}” fájl nem található.",
+        "en": "The file “{name}” could not be found.",
+    },
+    "project.document.rename_title": {
+        "hu": "Dokumentum átnevezése",
+        "en": "Rename document",
+    },
+    "project.document.rename_name_label": {"hu": "Fájlnév:", "en": "File name:"},
+    "project.document.rename_extension_label": {
+        "hu": "Kiterjesztés:",
+        "en": "Extension:",
+    },
+    "project.document.rename_no_extension": {
+        "hu": "(nincs)",
+        "en": "(none)",
+    },
+    "project.document.rename_show_extension": {
+        "hu": "Kiterjesztés megjelenítése",
+        "en": "Show extension",
+    },
+    "project.document.delete_confirm_title": {
+        "hu": "Törlés megerősítése",
+        "en": "Confirm deletion",
+    },
+    "project.document.delete_confirm_text": {
+        "hu": "Biztosan törlöd a(z) „{name}” dokumentumot?",
+        "en": "Are you sure you want to delete the document “{name}”?",
+    },
     "project.delete_confirm_title": {
         "hu": "Törlés megerősítése",
         "en": "Confirm deletion",
@@ -240,8 +312,6 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "hu": "Biztosan törlöd a(z) „{name}” projektet és minden tartalmát?\n\nEz nem vonható vissza.",
         "en": "Are you sure you want to delete the project “{name}” and all its contents?\n\nThis cannot be undone.",
     },
-
-
     "project.close_confirm_title": {
         "hu": "Mentetlen módosítások",
         "en": "Unsaved changes",
@@ -250,42 +320,47 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "hu": "El szeretnéd menteni a módosításokat, mielőtt bezárod?",
         "en": "Do you want to save your changes before closing?",
     },
-
-
-
     # --- Lebegő szín-magyarázó eszköztár -----
     "status_legend.collapse": {"hu": "Összecsukás", "en": "Collapse"},
     "status_legend.expand": {"hu": "Kibontás", "en": "Expand"},
     "status_legend.close": {"hu": "Elrejtés", "en": "Hide"},
-    "main.action.show_status_legend": {"hu": "Színmagyarázat mutatása", "en": "Show color legend"},
-
-
-
-
-
-
-
-
-
-
+    "main.action.show_status_legend": {
+        "hu": "Színmagyarázat mutatása",
+        "en": "Show color legend",
+    },
     "project.details_title": {"hu": "Részletek – {name}", "en": "Details – {name}"},
-
     # --- Projekt-státusz ---
     "status.not_started": {"hu": "El sincs kezdve", "en": "Not started"},
     "status.in_progress": {"hu": "Folyamatban", "en": "In progress"},
     "status.done": {"hu": "Kész", "en": "Done"},
-
     # --- Feladat-sor / mérföldkő / szerkesztés widgetek ---
     "widgets.milestone_title": {"hu": "Mérföldkő", "en": "Milestone"},
     "widgets.milestone_date_label": {"hu": "Dátum:", "en": "Date:"},
     "widgets.milestone_name_label": {"hu": "Cím:", "en": "Title:"},
     "widgets.milestone_description_label": {"hu": "Leírás:", "en": "Description:"},
     "widgets.task_edit_title": {"hu": "Feladat szerkesztése", "en": "Edit task"},
-
+    "widgets.task_details_title": {"hu": "Feladat részletei", "en": "Task details"},
+    "widgets.document_open": {"hu": "Megnyitás", "en": "Open"},
+    "widgets.document_rename": {"hu": "Átnevezés", "en": "Rename"},
+    "widgets.document_conflict_title": {
+        "hu": "Fájlnév ütközés",
+        "en": "Filename conflict",
+    },
+    "widgets.document_conflict_text": {
+        "hu": "A(z) „{name}” fájl már létezik. Felülírjam, vagy adj meg új nevet?",
+        "en": "The file “{name}” already exists. Overwrite it, or choose a new name?",
+    },
+    "widgets.document_overwrite": {"hu": "Felülírás", "en": "Overwrite"},
+    "widgets.document_new_name": {"hu": "Új név", "en": "New name"},
+    "widgets.project_picker_title": {
+        "hu": "Válassz projektet",
+        "en": "Choose project",
+    },
+    "widgets.project_picker_empty": {
+        "hu": "Még nincs egyetlen projekt sem.",
+        "en": "There are no projects yet.",
+    },
     "project.task.start": {"hu": "Elkezdés", "en": "Start"},
-
-
-
     # --- Formázó eszköztár ---
     "toolbar.bold": {"hu": "Félkövér", "en": "Bold"},
     "toolbar.italic": {"hu": "Dőlt", "en": "Italic"},
@@ -293,51 +368,30 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
     "toolbar.highlight": {"hu": "Kiemelés", "en": "Highlight"},
     "toolbar.text_color": {"hu": "Betűszín", "en": "Text color"},
     "toolbar.font_size": {"hu": "Betűméret", "en": "Font size"},
-
-
-
     # --- Tálcaikon ---
-    "main.tray.open": {"hu": "Megnyitás", "en" : "Open"},
-    "main.tray.in_progress" : {"hu": "Folyamatban lévő feladatok", "en": "Tasks in progress"},
+    "main.tray.open": {"hu": "Megnyitás", "en": "Open"},
+    "main.tray.in_progress": {
+        "hu": "Folyamatban lévő feladatok",
+        "en": "Tasks in progress",
+    },
     "main.tray.next": {"hu": "Következő feladatok", "en": "Next Tasks"},
     "main.tray.empty": {"hu": "Nincs ilyen feladat", "en": "There is no such Task"},
     "main.tray.minimized_message": {"hu": "Kicsinyítve", "en": "Minimized"},
-    "general.close_to_tray": {"hu": "Bezáráskor tálcára kicsinyítés (kilépés helyett)", "en": "Minimize to tray on close (instead of quitting)"},
-
-
-
-
-    # --- Status bar ---
-    "main.status_bar.popup_empty": {"hu": "Nincs hátralévő feladat.", "en": "No remaining tasks."},
-
-
-    "main.status_bar.popup_title": {
-    "hu": "Következő feladatok",
-    "en": "Upcoming tasks",
+    "general.close_to_tray": {
+        "hu": "Bezáráskor tálcára kicsinyítés (kilépés helyett)",
+        "en": "Minimize to tray on close (instead of quitting)",
     },
-
-
-
-
-
-
-
-
-
+    # --- Status bar ---
+    "main.status_bar.popup_empty": {
+        "hu": "Nincs hátralévő feladat.",
+        "en": "No remaining tasks.",
+    },
+    "main.status_bar.popup_title": {
+        "hu": "Következő feladatok",
+        "en": "Upcoming tasks",
+    },
+    "main.status_bar.in_progress": {"hu": "Folyamatban:", "en": "In progress"},
 }
-
-
-    
-
-
-
-
-
-
-
-
-
-
 
 
 def set_language(lang_code: str) -> None:
@@ -380,7 +434,3 @@ def tr(key: str, **kwargs: str) -> str:
         except (KeyError, IndexError):
             return text
     return text
-
-
-
-    
