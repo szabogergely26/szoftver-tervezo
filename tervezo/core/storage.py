@@ -6,6 +6,8 @@ import shutil
 from datetime import date
 from pathlib import Path
 
+from config import TEMPLATE_TASKS_FILE, TEMPLATE_TASKS_SEED_FILE
+
 from .models import Project, ProjectStatus, TaskItem, TaskStatus
 
 PROJECT_FILE = "project.json"
@@ -13,10 +15,6 @@ TASKS_FILE = "feladatok.json"
 JOURNAL_FILE = "naplo.html"
 ASSETS_DIR = "assets"
 DOCS_DIR = "docs"
-
-# A "Sablon feladatok" dialógus tételeit tartalmazó, kódtól független config.
-# Új tétel felvételéhez elég ezt a JSON fájlt bővíteni, kódmódosítás nem kell.
-TEMPLATE_TASKS_FILE = Path(__file__).parent / "sablon_feladatok.json"
 
 
 class Storage:
@@ -233,17 +231,34 @@ class Storage:
         return max((t.id for t in tasks), default=0) + 1
 
     def read_template_tasks(self) -> list[dict]:
-        """A 'Sablon feladatok' dialógus tételei (sablon_feladatok.json-ból).
+        """A 'Sablon feladatok' dialógus tételei.
 
-        Bővítés: a JSON fájlba felvett új {"id": ..., "title": ...} tétel
-        automatikusan megjelenik a dialógusban, kódmódosítás nélkül.
+        A ténylegesen használt (írható, USER_DATA_DIR alatti) fájl, ha még
+        nem létezik, első alkalommal a programmal szállított "seed" fájlból
+        jön létre – így .deb-ből telepítve is van kiinduló lista, de utána
+        a felhasználó szerkesztései egy csomagfrissítést is túlélnek, mert
+        a program-melletti könyvtár telepítve nem írható.
+
+        Bővítés: a seed JSON fájlba felvett új {"id": ..., "title": ...}
+        tétel csak akkor jelenik meg automatikusan, ha a user-oldali fájl
+        még nem létezett (első indítás / migráció).
         """
         if not TEMPLATE_TASKS_FILE.exists():
-            return []
+            if TEMPLATE_TASKS_SEED_FILE.exists():
+                TEMPLATE_TASKS_FILE.write_text(
+                    TEMPLATE_TASKS_SEED_FILE.read_text(encoding="utf-8"),
+                    encoding="utf-8",
+                )
+            else:
+                return []
         return json.loads(TEMPLATE_TASKS_FILE.read_text(encoding="utf-8"))
 
     def write_template_tasks(self, items: list[dict]) -> None:
-        """A sablon-tétel lista elmentése (Beállítások > Feladatok lapról)."""
+        """A sablon-tétel lista elmentése (Beállítások > Feladatok lapról).
+
+        Mindig a USER_DATA_DIR alatti, írható fájlba ment – sose a program
+        mellé, mert az telepítve (.deb) nem írható a felhasználó által.
+        """
         TEMPLATE_TASKS_FILE.write_text(
             json.dumps(items, ensure_ascii=False, indent=2),
             encoding="utf-8",

@@ -42,3 +42,10 @@ USER_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
 SETTINGS_FILE = USER_DATA_DIR / "settings.json"
+
+
+# A "Sablon feladatok" dialógus tételei: a program-melletti fájl csak
+# kiinduló ("seed") adat, .deb-ből telepítve nem írható – az éles,
+# szerkeszthető példány a USER_DATA_DIR alá kerül (l. Storage.read_template_tasks).
+TEMPLATE_TASKS_SEED_FILE = BASE_DIR / "tervezo" / "core" / "sablon_feladatok.json"
+TEMPLATE_TASKS_FILE = USER_DATA_DIR / "sablon_feladatok.json"
