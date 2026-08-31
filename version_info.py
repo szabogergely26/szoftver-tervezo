@@ -17,5 +17,5 @@ a hozzá tartozó apró javítások (lint, set_task_done fix) pedig ugyanannak a
 A 0.4.1 csak akkor jönne, ha a 0.4.0 kiadása UTÁN derülne ki egy hiba, amit gyorsan javítani kell.
 """
 
-APP_VERSION = "0.7.0"
+APP_VERSION = "0.7.5"
 BUILD_CHANNEL = "dev"  # "dev" | "preview" | "main"

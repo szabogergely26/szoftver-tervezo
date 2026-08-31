@@ -376,13 +376,15 @@ class ProjectDetailsWidget(QWidget):
         list_by_status = {
             TaskStatus.PENDING: (self.next_tasks_list, "pending"),
             TaskStatus.IN_PROGRESS: (self.in_progress_tasks_list, "in_progress"),
-            TaskStatus.DONE: (self.done_tasks_list, "done"),
         }
 
         pending_total = sum(1 for t in self.tasks if t.status == TaskStatus.PENDING)
         pending_seen = 0
 
         for task in self.tasks:
+            if task.status == TaskStatus.DONE:
+                continue
+
             target_list, mode = list_by_status[task.status]
 
             if task.status == TaskStatus.PENDING:
@@ -408,6 +410,27 @@ class ProjectDetailsWidget(QWidget):
             item.setSizeHint(row.sizeHint())
             target_list.addItem(item)
             target_list.setItemWidget(item, row)
+
+        # Elkészült feladatok: befejezés dátuma szerint csökkenő sorrendben
+        # (a legutóbb kész feladat a lista tetején). A completed_at üres/None
+        # esetén a feladat a lista végére kerül.
+        done_tasks = [t for t in self.tasks if t.status == TaskStatus.DONE]
+        done_tasks.sort(key=lambda t: t.completed_at or "", reverse=True)
+
+        for task in done_tasks:
+            row = TaskRowWidget(task, mode="done")
+
+            row.start_requested.connect(self._on_task_start)
+            row.toggled.connect(self._on_task_toggled)
+            row.edit_requested.connect(self._on_task_edit)
+            row.details_requested.connect(self._on_task_details)
+            row.delete_requested.connect(self._on_task_delete)
+            row.move_requested.connect(self._on_task_move)
+
+            item = QListWidgetItem()
+            item.setSizeHint(row.sizeHint())
+            self.done_tasks_list.addItem(item)
+            self.done_tasks_list.setItemWidget(item, row)
 
     def _on_add_task(self) -> None:
         title = self.new_task_edit.text().strip()
