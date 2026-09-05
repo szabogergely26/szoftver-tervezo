@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QApplication,
     QDialog,
     QFileDialog,
+    QFrame,
     QLabel,
     QMainWindow,
     QMenu,
@@ -22,6 +23,7 @@ from PySide6.QtWidgets import (
     QStatusBar,
     QSystemTrayIcon,
     QToolBar,
+    QHBoxLayout,
     QVBoxLayout,
     QWidget,
     QWidgetAction,
@@ -115,7 +117,35 @@ class MainWindow(QMainWindow):
 
         self.splitter.splitterMoved.connect(self._on_splitter_moved)
 
-        self.setCentralWidget(self.splitter)
+        # --- Eszköztár alatti sáv: aktuálisan folyamatban lévő projekt ---
+        self.in_progress_bar = QWidget()
+        self.in_progress_bar.setObjectName("InProgressBar")
+        self.in_progress_bar.setFixedHeight(28)
+        bar_layout = QHBoxLayout(self.in_progress_bar)
+        bar_layout.setContentsMargins(8, 4, 8, 4)
+
+        self.top_in_progress_label = InProgressTaskLabel(self.storage, self.ws, self)
+        self.top_in_progress_label.project_open_requested.connect(
+            self._open_project_in_dialog
+        )
+        bar_layout.addStretch(1)
+        bar_layout.addWidget(self.top_in_progress_label)
+        bar_layout.addStretch(1)
+        self.top_in_progress_label.refresh()
+
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.HLine)
+        separator.setFrameShadow(QFrame.Shadow.Sunken)
+
+        central_widget = QWidget()
+        central_layout = QVBoxLayout(central_widget)
+        central_layout.setContentsMargins(0, 0, 0, 0)
+        central_layout.setSpacing(0)
+        central_layout.addWidget(self.in_progress_bar)
+        central_layout.addWidget(separator)
+        central_layout.addWidget(self.splitter)
+
+        self.setCentralWidget(central_widget)
 
         self.status_legend = StatusLegendWidget(self)
         self.status_legend.closed.connect(self._on_status_legend_closed)
@@ -399,54 +429,6 @@ class MainWindow(QMainWindow):
         )  # csak akkor látszik, ha a legend el van rejtve
         self.toolbar.addAction(self.act_show_status_legend)
 
-    def _build_status_bar(self) -> None:
-        self.status_bar = QStatusBar()
-        self.setStatusBar(self.status_bar)
-
-        # "Folyamatban: <Projekt> - <Feladat>" — projektfüggetlen, ciklikusan
-        # lapozó widget, csak akkor látszik, ha van IN_PROGRESS feladat.
-        self.in_progress_label = InProgressTaskLabel(self.storage, self.ws, self)
-        self.in_progress_label.project_open_requested.connect(
-            self._open_project_in_dialog
-        )
-        self.status_bar.addPermanentWidget(self.in_progress_label)
-        self.in_progress_label.refresh()
-
-        self.next_task_label = QLabel()
-        self.next_task_label.setObjectName("NextTaskLabel")
-        self.next_task_label.setStyleSheet("padding: 2px 8px; border-radius: 4px;")
-        self.next_task_label.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.next_task_label.mousePressEvent = self._show_task_overview_popup
-
-        self.status_bar.addPermanentWidget(self.next_task_label)
-
-    def _show_task_overview_popup(self, event) -> None:
-        popup = TaskOverviewPopup(self.storage, self.ws, self)
-        popup.project_open_requested.connect(self._open_project_in_dialog)
-        popup.task_changed.connect(self.in_progress_label.refresh)
-
-        # A popup a shadow számára margót tartalmaz a látható kártya körül,
-        # ezért a pozíciót ezzel a margóval korrigáljuk, hogy a kártya
-        # vizuálisan ugyanoda kerüljön, mint a margó bevezetése előtt.
-        margin = popup.SHADOW_MARGIN
-        pos = self.next_task_label.mapToGlobal(self.next_task_label.rect().topRight())
-        pos.setX(pos.x() - popup.sizeHint().width() + margin)
-        pos.setY(pos.y() - popup.sizeHint().height() + margin)
-        popup.move(pos)
-        popup.show()
-
-    def _on_status_legend_closed(self) -> None:
-        self.act_show_status_legend.setVisible(True)
-
-    def _show_status_legend(self) -> None:
-        self.status_legend.show_and_raise()
-        self.act_show_status_legend.setVisible(False)
-
-    # ---------- Nyelv ----------
-    def _on_language_changed(self, _lang_code: str) -> None:
-        self.retranslate_ui()
-        self.reload_cards()
-
     def retranslate_ui(self) -> None:
         self.setWindowTitle(tr("main.window_title"))
 
@@ -473,6 +455,56 @@ class MainWindow(QMainWindow):
         self.migrate_covers_action.setText(tr("main.action.migrate_covers"))
 
         self.in_progress_label.refresh()
+        self.top_in_progress_label.refresh()
+
+    def _build_status_bar(self) -> None:
+        self.status_bar = QStatusBar()
+        self.setStatusBar(self.status_bar)
+
+        # "Folyamatban: <Projekt> - <Feladat>" — projektfüggetlen, ciklikusan
+        # lapozó widget, csak akkor látszik, ha van IN_PROGRESS feladat.
+        self.in_progress_label = InProgressTaskLabel(self.storage, self.ws, self)
+        self.in_progress_label.project_open_requested.connect(
+            self._open_project_in_dialog
+        )
+        self.status_bar.addPermanentWidget(self.in_progress_label)
+        self.in_progress_label.refresh()
+
+        self.next_task_label = QLabel()
+        self.next_task_label.setObjectName("NextTaskLabel")
+        self.next_task_label.setStyleSheet("padding: 2px 8px; border-radius: 4px;")
+        self.next_task_label.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.next_task_label.mousePressEvent = self._show_task_overview_popup
+
+        self.status_bar.addPermanentWidget(self.next_task_label)
+
+    def _show_task_overview_popup(self, event) -> None:
+        popup = TaskOverviewPopup(self.storage, self.ws, self)
+        popup.project_open_requested.connect(self._open_project_in_dialog)
+        popup.task_changed.connect(self.in_progress_label.refresh)
+        popup.task_changed.connect(self.top_in_progress_label.refresh)
+
+        # A popup a shadow számára margót tartalmaz a látható kártya körül,
+        # ezért a pozíciót ezzel a margóval korrigáljuk, hogy a kártya
+        # vizuálisan ugyanoda kerüljön, mint a margó bevezetése előtt.
+        margin = popup.SHADOW_MARGIN
+        pos = self.next_task_label.mapToGlobal(self.next_task_label.rect().topRight())
+        pos.setX(pos.x() - popup.sizeHint().width() + margin)
+        pos.setY(pos.y() - popup.sizeHint().height() + margin)
+        popup.move(pos)
+        popup.show()
+
+    def _on_status_legend_closed(self) -> None:
+        self.act_show_status_legend.setVisible(True)
+
+    def _show_status_legend(self) -> None:
+        self.status_legend.show_and_raise()
+        self.act_show_status_legend.setVisible(False)
+
+    # ---------- Nyelv ----------
+    def _on_language_changed(self, _lang_code: str) -> None:
+        self.retranslate_ui()
+        self.reload_cards()
 
     def show_toast(self, message: str) -> None:
         self.toast.show_message(message)
@@ -481,6 +513,8 @@ class MainWindow(QMainWindow):
     def reload_cards(self) -> None:
         if hasattr(self, "in_progress_label"):
             self.in_progress_label.refresh()
+        if hasattr(self, "top_in_progress_label"):
+            self.top_in_progress_label.refresh()
 
         while self.flow_layout.count():
             item = self.flow_layout.takeAt(0)

@@ -503,3 +503,15 @@ QToolTip {
     border-radius: 4px;
     padding: 3px 10px;
 }
+
+
+
+
+#TopInProgressLabel {
+    color: #2e7d32;
+    font-weight: 600;
+}
+
+#InProgressBar {
+    background-color: #f0f7f0;
+}
