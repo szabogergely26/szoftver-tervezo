@@ -1,13 +1,13 @@
 Package: tervezo-preview
-Version: 0.7.1
+Version: 0.7.2
 Architecture: all
 Maintainer: Szabó Gergely <szabogergely26@gmail.com>
 Depends: python3, python3-pyside6.qtcore, python3-pyside6.qtgui, python3-pyside6.qtwidgets
 Filename: pool/main/t/tervezo-preview/tervezo-preview_all.deb
-Size: 79902
-MD5sum: 6a706686cb304bbe22c70e9830dce20f
-SHA1: f7c6ecba870fb4d6e92884b8d59099d3ba8cb243
-SHA256: d11f6093c811748f42eb4485e7aa97206aba436eeeffe0c6c951c00afef0798f
+Size: 80244
+MD5sum: 3f711558b607c91d4e7b853dac79d92d
+SHA1: a9d9656d5c78cd402688e0214adf87981057a09f
+SHA256: 5b0faa5391f52e5093250185242e25a89303eabf3bcc479b0b8b69aab17a790f
 Section: utils
 Priority: optional
 Description: Saját fejlesztésű projekt-tervező alkalmazás
