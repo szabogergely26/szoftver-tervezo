@@ -223,3 +223,40 @@ class ProfileMeta:
             original_name=data.get("original_name", ""),
             timestamp=data.get("timestamp", ""),
         )
+
+
+# --- Új dataclass: ProfileData ---
+
+
+@dataclass
+class ProfileData:
+    """Egy aktív profil saját, profilonként külön tárolt adatai.
+
+    A projekt-szintű mezők (borítókép, 'Mire jó a program', rövid leírás)
+    NEM ide tartoznak — azok a Project dataclass-ban maradnak, közösek
+    minden profil között. Ez a dataclass a profiles/<Name>/profile_meta.json
+    tartalmát írja le: kezdés/befejezés dátum, mérföldkövek, és a profil
+    saját (kézzel beállított) státusza a kártyán megjelenő pötty-höz.
+    """
+
+    status: ProjectStatus = ProjectStatus.NOT_STARTED
+    start_date: str | None = None
+    end_date: str | None = None
+    milestones: list[Milestone] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return {
+            "status": self.status.value,
+            "start_date": self.start_date,
+            "end_date": self.end_date,
+            "milestones": [m.to_dict() for m in self.milestones],
+        }
+
+    @staticmethod
+    def from_dict(data: dict) -> ProfileData:
+        return ProfileData(
+            status=ProjectStatus(data.get("status", "not_started")),
+            start_date=data.get("start_date"),
+            end_date=data.get("end_date"),
+            milestones=[Milestone.from_dict(m) for m in data.get("milestones", [])],
+        )

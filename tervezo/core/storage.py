@@ -6,7 +6,14 @@ import shutil
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from .models import Project, ProjectStatus, TaskItem, TaskStatus, ProfileMeta
+from .models import (
+    ProfileData,
+    ProfileMeta,
+    Project,
+    ProjectStatus,
+    TaskItem,
+    TaskStatus,
+)
 
 PROJECT_FILE = "project.json"
 TASKS_FILE = "feladatok.json"
@@ -20,6 +27,8 @@ TRASH_DIR = ".trash"
 INACTIVE_META_FILE = ".inactive_meta.json"
 TRASH_META_FILE = ".trash_meta.json"
 TRASH_MAX_AGE_DAYS = 30
+
+PROFILE_DATA_FILE = "profile_meta.json"
 
 # A "Sablon feladatok" dialógus tételeit tartalmazó, kódtól független config.
 # Új tétel felvételéhez elég ezt a JSON fájlt bővíteni, kódmódosítás nem kell.
@@ -242,6 +251,26 @@ class Storage:
             return project_dir / JOURNAL_FILE
         return project_dir / PROFILES_DIR / profile / JOURNAL_FILE
 
+    def _profile_data_path(self, project_dir: Path, profile: str) -> Path:
+        return project_dir / PROFILES_DIR / profile / PROFILE_DATA_FILE
+
+    def read_profile_data(self, project_dir: Path, profile: str) -> ProfileData:
+        f = self._profile_data_path(project_dir, profile)
+        if not f.exists():
+            return ProfileData()
+        data = json.loads(f.read_text(encoding="utf-8"))
+        return ProfileData.from_dict(data)
+
+    def write_profile_data(
+        self, project_dir: Path, profile: str, profile_data: ProfileData
+    ) -> None:
+        f = self._profile_data_path(project_dir, profile)
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(
+            json.dumps(profile_data.to_dict(), ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
     # ---------- feladatok.json ----------
     def read_tasks(
         self, project_dir: Path, profile: str | None = None
@@ -334,7 +363,14 @@ class Storage:
         profiles/<first_profile_name>/ alá. Az assets/ (borítókép) marad
         projekt-szinten, nem duplázódik. Előtte biztonsági mentést készít
         a két fájlról (.bak kiterjesztéssel), hátha vissza kéne állítani.
+
+        A projekt jelenlegi status/start_date/end_date/milestones értékei
+        átmásolódnak az első profil profile_meta.json-jába (nem törlődnek
+        a project.json-ból, de attól kezdve a UI a profilos mezőket
+        használja, nem a project-szintűeket).
+
         """
+
         profiles_dir = project_dir / PROFILES_DIR
         target_dir = profiles_dir / first_profile_name
         target_dir.mkdir(parents=True, exist_ok=True)
@@ -352,6 +388,15 @@ class Storage:
             shutil.move(str(journal_src), str(target_dir / JOURNAL_FILE))
 
         project = self.read_project(project_dir)
+
+        profile_data = ProfileData(
+            status=project.status,
+            start_date=project.start_date,
+            end_date=project.end_date,
+            milestones=list(project.milestones),
+        )
+        self.write_profile_data(project_dir, first_profile_name, profile_data)
+
         project.profiles_enabled = True
         project.active_profile = first_profile_name
         self.write_project(project)
@@ -378,11 +423,6 @@ class Storage:
 
         for other_dir in self._active_profile_dirs(project_dir):
             self._move_profile_to_inactive(project_dir, other_dir.name)
-
-        project = self.read_project(project_dir)
-        project.profiles_enabled = False
-        project.active_profile = None
-        self.write_project(project)
 
     def _active_profile_dirs(self, project_dir: Path) -> list[Path]:
         profiles_dir = project_dir / PROFILES_DIR

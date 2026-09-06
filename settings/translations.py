@@ -403,6 +403,11 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "hu": "Folyamatban lévő feladatok",
         "en": "Tasks in progress",
     },
+    # --- Profilok ---
+    "project.profile.add_coming_soon": {
+        "hu": "Új profil (hamarosan)",
+        "en": "New profile (coming soon)",
+    },
 }
 
 

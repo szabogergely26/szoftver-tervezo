@@ -39,7 +39,7 @@ from PySide6.QtWidgets import (
 from settings.translations import tr
 
 from ..core.documents import get_document_icon
-from ..core.models import Milestone, Project, TaskItem
+from ..core.models import Milestone, Project, ProjectStatus, TaskItem
 
 CARD_WIDTH = 200
 CARD_HEIGHT = 220
@@ -144,6 +144,102 @@ class ProjectCard(QFrame):
         super().mousePressEvent(event)
         if event.button() == Qt.MouseButton.LeftButton:
             self.clicked.emit(self.project.path)
+
+
+class ProfileSwitcherBar(QWidget):
+    """Profil-váltó sáv a ProjectDialog tab-sávja felett.
+
+    Minden profilhoz egy sima (nem checkable) gomb: név + bal-szegély
+    színnel jelzett státusz. Az "aktív" jelzést MI magunk rajzoljuk a
+    stíluson keresztül (nem a Qt beépített checkable-mechanizmusán, ami
+    kattintásonként automatikusan billegteti a checked-állapotot, és ez
+    kiszámíthatatlan lett két gomb között váltogatva). Plusz egy "+" gomb
+    a végén (jelenleg inaktív — új profil létrehozása egy későbbi
+    lépésben kerül bele).
+    """
+
+    profile_selected = Signal(str)
+
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+        self._buttons: dict[str, QPushButton] = {}
+        self._names: list[str] = []
+        self._active: str | None = None
+
+        self.layout_ = QHBoxLayout(self)
+        self.layout_.setContentsMargins(0, 0, 0, 4)
+        self.layout_.setSpacing(4)
+
+        self.add_profile_btn = QPushButton("+")
+        self.add_profile_btn.setFixedWidth(28)
+        self.add_profile_btn.setEnabled(False)
+        self.add_profile_btn.setToolTip(tr("project.profile.add_coming_soon"))
+
+        self.layout_.addWidget(self.add_profile_btn)
+        self.layout_.addStretch(1)
+
+    def set_profiles(
+        self,
+        names: list[str],
+        statuses: dict[str, ProjectStatus],
+        active: str | None,
+    ) -> None:
+        """A sáv frissítése az aktuális profil-listából.
+
+        Ha a névhalmaz nem változott az előző hívás óta, nem építjük
+        újra a gombokat — csak az aktív-jelzést és a szín-jelzést
+        frissítjük a meglévőkön.
+        """
+        if names == self._names:
+            self._refresh_button_states(statuses, active)
+            return
+
+        while self.layout_.count():
+            item = self.layout_.takeAt(0)
+            widget = item.widget()
+            if widget is not None and widget is not self.add_profile_btn:
+                widget.deleteLater()
+
+        self._buttons.clear()
+        self._names = list(names)
+
+        for name in names:
+            btn = QPushButton(name)
+            btn.clicked.connect(lambda _checked, n=name: self._on_button_clicked(n))
+            self.layout_.addWidget(btn)
+            self._buttons[name] = btn
+
+        self.layout_.addWidget(self.add_profile_btn)
+        self.layout_.addStretch(1)
+
+        self._refresh_button_states(statuses, active)
+
+    def _refresh_button_states(
+        self, statuses: dict[str, ProjectStatus], active: str | None
+    ) -> None:
+        """A meglévő gombok aktív-jelzésének és szín-jelzésének frissítése."""
+
+        self._active = active
+        for name, btn in self._buttons.items():
+            status = statuses.get(name)
+            border_color = status.color if status is not None else "#d0d3d9"
+
+            if name == active:
+                btn.setStyleSheet(
+                    f"QPushButton {{ border-left: 4px solid {border_color}; "
+                    f"padding: 4px 10px; background-color: #3b82f6; "
+                    f"color: white; font-weight: bold; }}"
+                )
+            else:
+                btn.setStyleSheet(
+                    f"QPushButton {{ border-left: 4px solid {border_color}; "
+                    f"padding: 4px 10px; }}"
+                )
+
+    def _on_button_clicked(self, name: str) -> None:
+        if name == self._active:
+            return
+        self.profile_selected.emit(name)
 
 
 class TaskRowWidget(QWidget):

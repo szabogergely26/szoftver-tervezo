@@ -39,7 +39,7 @@ from config import ASSETS_DIR
 from settings.translations import tr
 
 from ..core import documents as documents_core
-from ..core.models import ProjectStatus, TaskItem, TaskStatus
+from ..core.models import ProfileData, ProjectStatus, TaskItem, TaskStatus
 from ..core.storage import Storage
 from .template_tasks_dialog import TemplateTasksDialog
 from .widgets import (
@@ -47,6 +47,7 @@ from .widgets import (
     DocumentRenameDialog,
     DocumentRowWidget,
     MilestoneDialog,
+    ProfileSwitcherBar,
     TaskDetailsDialog,
     TaskEditDialog,
     TaskRowWidget,
@@ -65,6 +66,12 @@ class ProjectDetailsWidget(QWidget):
     (lásd ProjectDialog lentebb), akár a főablak egy jobb oldali
     panelébe (sidebar nézet) — a tényleges tartalom és logika egy helyen
     van, csak a "kereten" (dialógus vs. sidebar) múlik, hogyan jelenik meg.
+
+    Profilos projekteknél (project.profiles_enabled) a Státusz, Kezdés/
+    befejezés dátum, Mérföldkövek, Napló és Feladatok mezők az AKTUÁLIS
+    profilhoz (self.active_profile) tartoznak, és profilváltáskor
+    újratöltődnek. A Borítókép, "Mire jó a program" és Rövid leírás
+    projekt-szintű, közös mezők maradnak minden profil között.
     """
 
     project_changed = Signal()
@@ -83,7 +90,18 @@ class ProjectDetailsWidget(QWidget):
         super().__init__(parent)
         self.storage = storage
         self.project = storage.read_project(project_dir)
-        self.tasks: list[TaskItem] = storage.read_tasks(project_dir)
+
+        # Profil-állapot: ha a projekt profilos módban van, az aktuálisan
+        # megjelenített profil neve — kezdésnek a project.json-ban rögzített
+        # active_profile. Nem-profilos projekteknél None marad, és minden
+        # profilfüggő mező a project-szintű értékeket tükrözi.
+        self.active_profile: str | None = (
+            self.project.active_profile if self.project.profiles_enabled else None
+        )
+        self.profile_data: ProfileData = self._load_profile_data(self.active_profile)
+        self.tasks: list[TaskItem] = storage.read_tasks(
+            project_dir, profile=self.active_profile
+        )
 
         self._deleted = False
         self._pending_cover_path: Path | None = None
@@ -98,6 +116,14 @@ class ProjectDetailsWidget(QWidget):
         name_font.setBold(True)
         self.name_label.setFont(name_font)
         layout.addWidget(self.name_label)
+
+        self.profile_switcher = ProfileSwitcherBar()
+        self.profile_switcher.profile_selected.connect(
+            self._on_profile_switch_requested
+        )
+        layout.addWidget(self.profile_switcher)
+        self._reload_profile_switcher()
+        self.profile_switcher.setVisible(self.project.profiles_enabled)
 
         self.tabs = QTabWidget()
         layout.addWidget(self.tabs, 1)
@@ -146,6 +172,66 @@ class ProjectDetailsWidget(QWidget):
             # menüből induló hívás miatt, ezért külön singleShot.
             QTimer.singleShot(0, self._on_add_document)
 
+    # ---------- Profilok ----------
+    def _load_profile_data(self, profile: str | None) -> ProfileData:
+        """Az aktuális profil (vagy nem-profilos esetben a project) adatai.
+
+        Nem-profilos projekteknél a ProfileData csak egy ideiglenes,
+        memóriabeli tükrözés a project mezőiről — sosem íródik fájlba,
+        csak a form-mezők közös feltöltésének/kiolvasásának egységesítésére
+        szolgál (lásd _reload_profile_dependent_fields /
+        _collect_profile_dependent_fields).
+        """
+        if profile is None:
+            return ProfileData(
+                status=self.project.status,
+                start_date=self.project.start_date,
+                end_date=self.project.end_date,
+                milestones=list(self.project.milestones),
+            )
+        return self.storage.read_profile_data(self.project.path, profile)
+
+    def _reload_profile_switcher(self) -> None:
+        if not self.project.profiles_enabled:
+            return
+        names = self.storage.list_active_profile_names(self.project.path)
+        statuses = {
+            name: self.storage.read_profile_data(self.project.path, name).status
+            for name in names
+        }
+        self.profile_switcher.set_profiles(names, statuses, self.active_profile)
+
+    def _on_profile_switch_requested(self, new_profile: str) -> None:
+        if new_profile == self.active_profile:
+            return
+
+        if not self.confirm_close(reason="profile_switch"):
+            # A felhasználó Mégse-t választott — a switcher gombjait
+            # vissza kell állítani az aktuális (még nem váltott) profilra.
+            self._reload_profile_switcher()
+            return
+
+        self.active_profile = new_profile
+        self._reload_for_active_profile()
+
+    def _reload_for_active_profile(self) -> None:
+        """A profilfüggő mezők (Áttekintés-rész, Napló, Feladatok)
+        újratöltése az self.active_profile alapján, profilváltás után."""
+        self.profile_data = self._load_profile_data(self.active_profile)
+        self.tasks = self.storage.read_tasks(
+            self.project.path, profile=self.active_profile
+        )
+
+        self._reload_profile_dependent_overview_fields()
+        self.journal_editor.setHtml(
+            self.storage.read_journal(self.project.path, profile=self.active_profile)
+        )
+        self.journal_editor.setHtml(self.journal_editor.toHtml())
+        self._reload_tasks()
+        self._reload_profile_switcher()
+
+        self._last_saved_snapshot = self._make_snapshot()
+
     # ---------- Áttekintés ----------
     def _build_overview_tab(self) -> None:
         tab = QWidget()
@@ -179,6 +265,7 @@ class ProjectDetailsWidget(QWidget):
 
         self._reload_cover_preview()
 
+        # --- Projekt-szintű, közös mezők (minden profil között megosztott) ---
         self.purpose_edit = QPlainTextEdit(self.project.purpose)
         self.purpose_edit.setFixedHeight(100)
         form.addRow(tr("project.purpose_label"), self.purpose_edit)
@@ -186,24 +273,21 @@ class ProjectDetailsWidget(QWidget):
         self.description_edit = QLineEdit(self.project.description)
         form.addRow(tr("project.description_label"), self.description_edit)
 
+        # --- Profilfüggő mezők (nem-profilos esetben a project tükrözése) ---
         self.status_combo = QComboBox()
         for status in ProjectStatus:
             self.status_combo.addItem(f"{status.icon} {status.label}", status)
-        idx = self.status_combo.findData(self.project.status)
-        if idx >= 0:
-            self.status_combo.setCurrentIndex(idx)
         form.addRow(tr("project.status_label"), self.status_combo)
 
-        self.start_date_edit = QLineEdit(self.project.start_date or "")
+        self.start_date_edit = QLineEdit()
         self.start_date_edit.setPlaceholderText(tr("common.date_placeholder"))
         form.addRow(tr("project.start_date_label"), self.start_date_edit)
 
-        self.end_date_edit = QLineEdit(self.project.end_date or "")
+        self.end_date_edit = QLineEdit()
         self.end_date_edit.setPlaceholderText(tr("common.date_placeholder"))
         form.addRow(tr("project.end_date_label"), self.end_date_edit)
 
         self.milestone_list = QListWidget()
-        self._reload_milestones()
         form.addRow(tr("project.milestones_label"), self.milestone_list)
 
         ms_buttons = QHBoxLayout()
@@ -215,7 +299,25 @@ class ProjectDetailsWidget(QWidget):
         ms_buttons.addWidget(remove_ms_btn)
         form.addRow("", ms_buttons)
 
+        self._reload_profile_dependent_overview_fields()
+
         self.tabs.addTab(tab, tr("project.tab.overview"))
+
+    def _reload_profile_dependent_overview_fields(self) -> None:
+        """A Státusz/dátumok/mérföldkövek mezők feltöltése self.profile_data-ból.
+
+        Induláskor és profilváltás után egyaránt ezt hívjuk, hogy a form
+        mindig az aktuálisan aktív profil (vagy nem-profilos esetben a
+        project) adatait mutassa.
+        """
+        idx = self.status_combo.findData(self.profile_data.status)
+        if idx >= 0:
+            self.status_combo.setCurrentIndex(idx)
+
+        self.start_date_edit.setText(self.profile_data.start_date or "")
+        self.end_date_edit.setText(self.profile_data.end_date or "")
+
+        self._reload_milestones()
 
     def _reload_cover_preview(self, override_path: Path | str | None = None) -> None:
         path = override_path or self.project.photo_path
@@ -283,7 +385,7 @@ class ProjectDetailsWidget(QWidget):
 
     def _reload_milestones(self) -> None:
         self.milestone_list.clear()
-        for m in self.project.milestones:
+        for m in self.profile_data.milestones:
             item = QListWidgetItem(f"{m.date} — {m.title}")
             item.setData(Qt.ItemDataRole.UserRole, m)
             self.milestone_list.addItem(item)
@@ -293,7 +395,7 @@ class ProjectDetailsWidget(QWidget):
         if dlg.exec() == QDialog.DialogCode.Accepted:
             milestone = dlg.get_milestone()
             if milestone:
-                self.project.milestones.append(milestone)
+                self.profile_data.milestones.append(milestone)
                 self._reload_milestones()
 
     def _on_remove_milestone(self) -> None:
@@ -301,7 +403,7 @@ class ProjectDetailsWidget(QWidget):
         if not item:
             return
         milestone = item.data(Qt.ItemDataRole.UserRole)
-        self.project.milestones.remove(milestone)
+        self.profile_data.milestones.remove(milestone)
         self._reload_milestones()
 
     # ---------- Napló ----------
@@ -310,7 +412,9 @@ class ProjectDetailsWidget(QWidget):
         layout = QVBoxLayout(tab)
 
         self.journal_editor = QTextEdit()
-        self.journal_editor.setHtml(self.storage.read_journal(self.project.path))
+        self.journal_editor.setHtml(
+            self.storage.read_journal(self.project.path, profile=self.active_profile)
+        )
 
         toolbar = build_richtext_toolbar(self.journal_editor, self)
         new_entry_btn = QPushButton(tr("project.new_journal_entry"))
@@ -770,14 +874,28 @@ class ProjectDetailsWidget(QWidget):
                 on_new_name(new_name)
 
     def _collect_project_from_form(self) -> None:
+        """Csak a projekt-szintű, közös mezők (purpose, description) —
+        a status/dátumok/mérföldkövek a _collect_profile_dependent_fields-be
+        kerültek, mert azok profilonként külön tárolódnak.
+        """
         self.project.purpose = self.purpose_edit.toPlainText().strip()
         self.project.description = self.description_edit.text().strip()
-        self.project.status = self.status_combo.currentData()
-        self.project.start_date = self.start_date_edit.text().strip() or None
-        self.project.end_date = self.end_date_edit.text().strip() or None
+
+    def _collect_profile_dependent_fields(self) -> None:
+        """A Státusz/dátumok/mérföldkövek mezők kiolvasása self.profile_data-ba.
+
+        Nem-profilos esetben ez ugyanúgy self.profile_data-ba kerül, amit
+        _on_save aztán visszaír a self.project megfelelő mezőibe (lásd ott).
+        """
+        self.profile_data.status = self.status_combo.currentData()
+        self.profile_data.start_date = self.start_date_edit.text().strip() or None
+        self.profile_data.end_date = self.end_date_edit.text().strip() or None
+        # self.profile_data.milestones már élőben karban van tartva
+        # (_on_add_milestone / _on_remove_milestone), nincs itt teendő.
 
     def _on_save(self) -> None:
         self._collect_project_from_form()
+        self._collect_profile_dependent_fields()
 
         if self._pending_cover_path is not None:
             rel_path = self.storage.set_project_cover(
@@ -792,9 +910,26 @@ class ProjectDetailsWidget(QWidget):
             self.storage, self.project, self.pending_documents
         )
 
+        if self.project.profiles_enabled:
+            self.storage.write_profile_data(
+                self.project.path, self.active_profile, self.profile_data
+            )
+        else:
+            # Nem-profilos projekt: a profile_data a project mezőire
+            # tükröződik vissza, hogy a project.json is naprakész maradjon
+            # (pl. a kártyán megjelenő státusz-pötty ebből jön).
+            self.project.status = self.profile_data.status
+            self.project.start_date = self.profile_data.start_date
+            self.project.end_date = self.profile_data.end_date
+            self.project.milestones = list(self.profile_data.milestones)
+
         self.storage.write_project(self.project)
-        self.storage.write_journal(self.project.path, self.journal_editor.toHtml())
-        self.storage.write_tasks(self.project.path, self.tasks)
+        self.storage.write_journal(
+            self.project.path, self.journal_editor.toHtml(), profile=self.active_profile
+        )
+        self.storage.write_tasks(
+            self.project.path, self.tasks, profile=self.active_profile
+        )
 
         self._pending_cover_path = None
         self._pending_cover_removed = False
@@ -802,17 +937,21 @@ class ProjectDetailsWidget(QWidget):
         self.project_changed.emit()
         self._last_saved_snapshot = self._make_snapshot()
         self._reload_documents()
+        self._reload_profile_switcher()
 
         main_window = self.window()
         if hasattr(main_window, "show_toast"):
             main_window.show_toast(tr("project.changes_saved"))
 
     def _make_snapshot(self) -> tuple:
-        """A jelenlegi (form + task-lista) állapot pillanatképe,
-        hogy bezáráskor össze tudjuk hasonlítani a legutóbb mentettel."""
+        """A jelenlegi (form + task-lista + profil-adatok) állapot
+        pillanatképe, hogy bezáráskor/profilváltáskor össze tudjuk
+        hasonlítani a legutóbb mentettel."""
         self._collect_project_from_form()
+        self._collect_profile_dependent_fields()
         return (
             self.project.to_dict(),
+            self.profile_data.to_dict(),
             self._journal_snapshot(),
             [t.to_dict() for t in self.tasks],
             self._pending_cover_path,
@@ -822,17 +961,25 @@ class ProjectDetailsWidget(QWidget):
             dict(self.pending_documents.renames),
         )
 
-    def confirm_close(self) -> bool:
+    def confirm_close(self, reason: str = "close") -> bool:
         """Megerősítő kérdés mentetlen változásra.
 
         True: szabad bezárni / váltani (nem volt változás, vagy a
         felhasználó Mentést vagy Elvetést választott).
-        False: a felhasználó Mégse-t választott, maradjon nyitva.
+        False: a felhasználó Mégse-t választott, maradjon a jelenlegi
+        állapotban (nyitva marad a dialógus, vagy a profil-váltás elmarad).
 
-        Ez a metódus a tényleges döntési logika, gombtól függetlenül —
-        hívja a "Bezárás" gomb (_on_close_clicked), a ProjectDialog
-        ablakkeret X gombja (closeEvent), és az oldalsáv nézet is
-        (projektváltáskor / app-bezáráskor).
+        Ez a metódus a tényleges döntési logika, gombtól/eseménytől
+        függetlenül — hívja a "Bezárás" gomb (_on_close_clicked), a
+        ProjectDialog ablakkeret X gombja (closeEvent), az oldalsáv nézet
+        (projektváltáskor / app-bezáráskor), és a profil-váltó sáv is
+        (_on_profile_switch_requested), amikor a felhasználó másik
+        profilra kattint mentetlen változás mellett.
+
+        A `reason` paraméter jelenleg csak dokumentációs célú (melyik
+        hívási út futtatta le), a szöveg maga minden esetben ugyanaz —
+        ha a jövőben eltérő szöveget szeretnénk profilváltáskor, itt
+        könnyen elágaztatható.
         """
 
         # print(">>> confirm_close CALLED")
@@ -857,6 +1004,7 @@ class ProjectDetailsWidget(QWidget):
         #
         # labels = [
         #     "project",
+        #     "profile_data",
         #     "journal",
         #     "tasks",
         #     "pending_cover_path",
