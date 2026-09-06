@@ -135,22 +135,28 @@ class TaskItem:
         return self.status == TaskStatus.DONE
 
 
+# --- Project dataclass bővítése ---
+
+
 @dataclass
 class Project:
     """Egy projekt teljes metaadata (a project.json tartalma + a mappa útvonala)."""
 
     path: Path
     name: str
-    description: str = ""  # rövid, kártyán is megjelenő leírás
-    purpose: str = ""  # "Mire jó a program" -> Áttekintés tab tartalma
-    photo: str | None = None  # relatív útvonal, pl. "assets/cover.png"
+    description: str = ""
+    purpose: str = ""
+    photo: str | None = None
     status: ProjectStatus = ProjectStatus.NOT_STARTED
     start_date: str | None = None
     end_date: str | None = None
     milestones: list[Milestone] = field(default_factory=list)
-    documents: list[str] = field(
-        default_factory=list
-    )  # fájlnevek a projekt docs/ mappájában
+    documents: list[str] = field(default_factory=list)
+    # Projekt-profilok (pl. LOQ / ThinkPad) — külön feladatok.json/naplo.html
+    # profilonként. Ha profiles_enabled=False, a régi gyökér-szintű fájlok
+    # (feladatok.json, naplo.html) számítanak, ahogy eddig is.
+    profiles_enabled: bool = False
+    active_profile: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -163,6 +169,8 @@ class Project:
             "end_date": self.end_date,
             "milestones": [m.to_dict() for m in self.milestones],
             "documents": self.documents,
+            "profiles_enabled": self.profiles_enabled,
+            "active_profile": self.active_profile,
         }
 
     @staticmethod
@@ -178,6 +186,8 @@ class Project:
             end_date=data.get("end_date"),
             milestones=[Milestone.from_dict(m) for m in data.get("milestones", [])],
             documents=data.get("documents", []),
+            profiles_enabled=data.get("profiles_enabled", False),
+            active_profile=data.get("active_profile"),
         )
 
     @property
@@ -186,3 +196,30 @@ class Project:
         if not self.photo:
             return None
         return self.path / self.photo
+
+
+# --- Új dataclass: ProfileMeta ---
+
+
+@dataclass
+class ProfileMeta:
+    """Egy inaktivált vagy kukába dobott profil kísérő meta-adata.
+
+    `.inactive_meta.json`-ban csak `timestamp` (disabled_at) számít;
+    `.trash_meta.json`-ban ugyanez a mező deleted_at szerepként szolgál.
+    A mezőnév egységesen `timestamp`, hogy ugyanaz az osztály mindkét
+    esetben újrahasználható legyen.
+    """
+
+    original_name: str
+    timestamp: str  # ISO 8601, pl. "2026-09-06T14:30:00"
+
+    def to_dict(self) -> dict:
+        return {"original_name": self.original_name, "timestamp": self.timestamp}
+
+    @staticmethod
+    def from_dict(data: dict) -> ProfileMeta:
+        return ProfileMeta(
+            original_name=data.get("original_name", ""),
+            timestamp=data.get("timestamp", ""),
+        )

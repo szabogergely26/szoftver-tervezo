@@ -3,10 +3,10 @@ from __future__ import annotations
 import json
 import re
 import shutil
-from datetime import date
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from .models import Project, ProjectStatus, TaskItem, TaskStatus
+from .models import Project, ProjectStatus, TaskItem, TaskStatus, ProfileMeta
 
 PROJECT_FILE = "project.json"
 TASKS_FILE = "feladatok.json"
@@ -14,12 +14,28 @@ JOURNAL_FILE = "naplo.html"
 ASSETS_DIR = "assets"
 DOCS_DIR = "docs"
 
+PROFILES_DIR = "profiles"
+INACTIVE_DIR = ".inactive"
+TRASH_DIR = ".trash"
+INACTIVE_META_FILE = ".inactive_meta.json"
+TRASH_META_FILE = ".trash_meta.json"
+TRASH_MAX_AGE_DAYS = 30
+
 # A "Sablon feladatok" dialógus tételeit tartalmazó, kódtól független config.
 # Új tétel felvételéhez elég ezt a JSON fájlt bővíteni, kódmódosítás nem kell.
 TEMPLATE_TASKS_FILE = Path(__file__).parent / "sablon_feladatok.json"
 
 
 class Storage:
+    """
+    A projektek és a hozzájuk tartozó fájlok (feladatok, napló, dokumentumok)
+    olvasásáért/írásáért felelős osztály.
+    A projektek a felhasználói adatok gyökérkönyvtárában
+    (config.py: USER_DATA_DIR) találhatók, a projekt mappájában pedig
+    a projekt.json, feladatok.json, naplo.html és a docs/ mappa
+    található.
+    """
+
     # ---------- Projektek listázása ----------
     def list_projects(self, projects_dir: Path) -> list[Path]:
         return sorted(p for p in projects_dir.iterdir() if p.is_dir())
@@ -214,16 +230,33 @@ class Storage:
         self.write_project(project)
         return target
 
+    # ---------- Profilok: path-feloldás ----------
+
+    def _tasks_path(self, project_dir: Path, profile: str | None) -> Path:
+        if profile is None:
+            return project_dir / TASKS_FILE
+        return project_dir / PROFILES_DIR / profile / TASKS_FILE
+
+    def _journal_path(self, project_dir: Path, profile: str | None) -> Path:
+        if profile is None:
+            return project_dir / JOURNAL_FILE
+        return project_dir / PROFILES_DIR / profile / JOURNAL_FILE
+
     # ---------- feladatok.json ----------
-    def read_tasks(self, project_dir: Path) -> list[TaskItem]:
-        f = project_dir / TASKS_FILE
+    def read_tasks(
+        self, project_dir: Path, profile: str | None = None
+    ) -> list[TaskItem]:
+        f = self._tasks_path(project_dir, profile)
         if not f.exists():
             return []
         data = json.loads(f.read_text(encoding="utf-8"))
         return [TaskItem.from_dict(d) for d in data]
 
-    def write_tasks(self, project_dir: Path, tasks: list[TaskItem]) -> None:
-        f = project_dir / TASKS_FILE
+    def write_tasks(
+        self, project_dir: Path, tasks: list[TaskItem], profile: str | None = None
+    ) -> None:
+        f = self._tasks_path(project_dir, profile)
+        f.parent.mkdir(parents=True, exist_ok=True)
         f.write_text(
             json.dumps([t.to_dict() for t in tasks], ensure_ascii=False, indent=2),
             encoding="utf-8",
@@ -262,14 +295,17 @@ class Storage:
         self.write_tasks(project_dir, tasks)
 
     # ---------- naplo.html ----------
-    def read_journal(self, project_dir: Path) -> str:
-        f = project_dir / JOURNAL_FILE
+    def read_journal(self, project_dir: Path, profile: str | None = None) -> str:
+        f = self._journal_path(project_dir, profile)
         if not f.exists():
             return "<p><br></p>"
         return f.read_text(encoding="utf-8")
 
-    def write_journal(self, project_dir: Path, html: str) -> None:
-        f = project_dir / JOURNAL_FILE
+    def write_journal(
+        self, project_dir: Path, html: str, profile: str | None = None
+    ) -> None:
+        f = self._journal_path(project_dir, profile)
+        f.parent.mkdir(parents=True, exist_ok=True)
         f.write_text(html, encoding="utf-8")
 
     def today_header_marker(self) -> str:
@@ -288,3 +324,212 @@ class Storage:
         a UI réteg dönti el, mivel az a QTextEdit dokumentum-szerkezetétől függ.
         """
         return f"<p><b>{self.today_header_marker()}</b></p>"
+
+    # ---------- Profilok engedélyezése / migráció ----------
+
+    def enable_profiles(self, project_dir: Path, first_profile_name: str) -> None:
+        """Profil-mód bekapcsolása egy eddig profil nélküli projekten.
+
+        A jelenlegi gyökér-szintű feladatok.json/naplo.html átkerül a
+        profiles/<first_profile_name>/ alá. Az assets/ (borítókép) marad
+        projekt-szinten, nem duplázódik. Előtte biztonsági mentést készít
+        a két fájlról (.bak kiterjesztéssel), hátha vissza kéne állítani.
+        """
+        profiles_dir = project_dir / PROFILES_DIR
+        target_dir = profiles_dir / first_profile_name
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        tasks_src = project_dir / TASKS_FILE
+        journal_src = project_dir / JOURNAL_FILE
+
+        if tasks_src.exists():
+            shutil.copy2(tasks_src, tasks_src.with_suffix(tasks_src.suffix + ".bak"))
+            shutil.move(str(tasks_src), str(target_dir / TASKS_FILE))
+        if journal_src.exists():
+            shutil.copy2(
+                journal_src, journal_src.with_suffix(journal_src.suffix + ".bak")
+            )
+            shutil.move(str(journal_src), str(target_dir / JOURNAL_FILE))
+
+        project = self.read_project(project_dir)
+        project.profiles_enabled = True
+        project.active_profile = first_profile_name
+        self.write_project(project)
+
+    def disable_profiles(self, project_dir: Path, keep_profile_name: str) -> None:
+        """Profil-mód kikapcsolása.
+
+        A megtartott profil (keep_profile_name) tartalma visszakerül a
+        projekt gyökerébe (feladatok.json, naplo.html). A többi aktív
+        profil a .inactive/ alá kerül (nem törlődik, később
+        visszaállítható, ha újra bekapcsolod a profilokat).
+        """
+        profiles_dir = project_dir / PROFILES_DIR
+        keep_dir = profiles_dir / keep_profile_name
+
+        tasks_src = keep_dir / TASKS_FILE
+        journal_src = keep_dir / JOURNAL_FILE
+        if tasks_src.exists():
+            shutil.move(str(tasks_src), str(project_dir / TASKS_FILE))
+        if journal_src.exists():
+            shutil.move(str(journal_src), str(project_dir / JOURNAL_FILE))
+        if keep_dir.exists():
+            shutil.rmtree(keep_dir)
+
+        for other_dir in self._active_profile_dirs(project_dir):
+            self._move_profile_to_inactive(project_dir, other_dir.name)
+
+        project = self.read_project(project_dir)
+        project.profiles_enabled = False
+        project.active_profile = None
+        self.write_project(project)
+
+    def _active_profile_dirs(self, project_dir: Path) -> list[Path]:
+        profiles_dir = project_dir / PROFILES_DIR
+        if not profiles_dir.exists():
+            return []
+        return sorted(
+            d
+            for d in profiles_dir.iterdir()
+            if d.is_dir() and not d.name.startswith(".")
+        )
+
+    def list_active_profile_names(self, project_dir: Path) -> list[str]:
+        return [d.name for d in self._active_profile_dirs(project_dir)]
+
+    # ---------- Inaktív profilok ----------
+
+    def _move_profile_to_inactive(self, project_dir: Path, profile_name: str) -> None:
+        src = project_dir / PROFILES_DIR / profile_name
+        dst = project_dir / PROFILES_DIR / INACTIVE_DIR / profile_name
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(src), str(dst))
+
+        meta = ProfileMeta(
+            original_name=profile_name,
+            timestamp=datetime.now().isoformat(timespec="seconds"),  # noqa: DTZ005 (helyi idő kell)
+        )
+        (dst / INACTIVE_META_FILE).write_text(
+            json.dumps(meta.to_dict(), ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+    def list_inactive_profiles(self, project_dir: Path) -> list[ProfileMeta]:
+        """Lusta beolvasás — csak akkor hívjuk, amikor a felhasználó
+        ténylegesen meg akarja nézni az inaktív profilokat (pl. a
+        profil-bekapcsoló felületen)."""
+        inactive_dir = project_dir / PROFILES_DIR / INACTIVE_DIR
+        if not inactive_dir.exists():
+            return []
+        result = []
+        for d in sorted(inactive_dir.iterdir()):
+            if not d.is_dir():
+                continue
+            meta_file = d / INACTIVE_META_FILE
+            if meta_file.exists():
+                data = json.loads(meta_file.read_text(encoding="utf-8"))
+                result.append(ProfileMeta.from_dict(data))
+            else:
+                # Nincs meta (pl. kézzel másolt mappa) — nevet a mappából vesszük.
+                result.append(ProfileMeta(original_name=d.name, timestamp=""))
+        return result
+
+    def restore_from_inactive(self, project_dir: Path, profile_name: str) -> None:
+        """Egy inaktív profil visszaállítása aktívvá (a meta fájl törlődik)."""
+        src = project_dir / PROFILES_DIR / INACTIVE_DIR / profile_name
+        dst = project_dir / PROFILES_DIR / profile_name
+        meta_file = src / INACTIVE_META_FILE
+        if meta_file.exists():
+            meta_file.unlink()
+        shutil.move(str(src), str(dst))
+
+    # ---------- Kuka (trash) -------------
+
+    def trash_profile(self, project_dir: Path, profile_name: str) -> None:
+        """Egy aktív profil kukába dobása (nem törli azonnal, 30 napig
+        visszaállítható). A célmappa nevéhez időbélyeget fűzünk, hogy
+        névütközés ne legyen több egymást követő törlésnél."""
+        src = project_dir / PROFILES_DIR / profile_name
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")  # noqa: DTZ005 (helyi idő kell)
+        trash_folder_name = f"{profile_name}__{timestamp}"
+        dst = project_dir / PROFILES_DIR / TRASH_DIR / trash_folder_name
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(src), str(dst))
+
+        meta = ProfileMeta(
+            original_name=profile_name,
+            timestamp=datetime.now().isoformat(timespec="seconds"),  # noqa: DTZ005
+        )
+        (dst / TRASH_META_FILE).write_text(
+            json.dumps(meta.to_dict(), ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+    def list_trashed_profiles(self, project_dir: Path) -> list[tuple[str, ProfileMeta]]:
+        """Lusta beolvasás — csak a Kuka nézet megnyitásakor hívjuk.
+
+        Visszaadja a (trash_folder_name, meta) párok listáját —
+        a mappanév kell a restore/purge műveletekhez.
+        """
+        trash_dir = project_dir / PROFILES_DIR / TRASH_DIR
+        if not trash_dir.exists():
+            return []
+        result = []
+        for d in sorted(trash_dir.iterdir()):
+            if not d.is_dir():
+                continue
+            meta_file = d / TRASH_META_FILE
+            if meta_file.exists():
+                data = json.loads(meta_file.read_text(encoding="utf-8"))
+                result.append((d.name, ProfileMeta.from_dict(data)))
+            else:
+                result.append((d.name, ProfileMeta(original_name=d.name, timestamp="")))
+        return result
+
+    def restore_from_trash(
+        self, project_dir: Path, trash_folder_name: str, restore_as_name: str
+    ) -> None:
+        """Egy kukába dobott profil visszaállítása aktívvá.
+
+        `restore_as_name`: a visszaállított profil neve — ha időközben
+        létrejött egy aktív profil ugyanazzal a névvel, a hívónak (UI)
+        előbb más nevet kell választania a felhasználóval, és azt kell
+        ide átadnia.
+        """
+        src = project_dir / PROFILES_DIR / TRASH_DIR / trash_folder_name
+        dst = project_dir / PROFILES_DIR / restore_as_name
+        meta_file = src / TRASH_META_FILE
+        if meta_file.exists():
+            meta_file.unlink()
+        shutil.move(str(src), str(dst))
+
+    def purge_expired_trash(
+        self, project_dir: Path, max_age_days: int = TRASH_MAX_AGE_DAYS
+    ) -> list[str]:
+        """A max_age_days-nél régebbi kukamappák végleges törlése.
+
+        Visszaadja a törölt mappák neveit (logoláshoz/tájékoztatáshoz).
+        A `deleted_at` a .trash_meta.json-ból számít, nem a fájlrendszer
+        módosítási dátumából (export/import után is helyes marad).
+        """
+        trash_dir = project_dir / PROFILES_DIR / TRASH_DIR
+        if not trash_dir.exists():
+            return []
+
+        cutoff = datetime.now() - timedelta(days=max_age_days)  # noqa: DTZ005
+        purged: list[str] = []
+        for d in sorted(trash_dir.iterdir()):
+            if not d.is_dir():
+                continue
+            meta_file = d / TRASH_META_FILE
+            if not meta_file.exists():
+                continue
+            data = json.loads(meta_file.read_text(encoding="utf-8"))
+            meta = ProfileMeta.from_dict(data)
+            if not meta.timestamp:
+                continue
+            deleted_at = datetime.fromisoformat(meta.timestamp)
+            if deleted_at < cutoff:
+                shutil.rmtree(d)
+                purged.append(d.name)
+        return purged
