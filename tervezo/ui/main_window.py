@@ -400,7 +400,7 @@ class MainWindow(QMainWindow):
         dialog.exec()
 
     def open_settings(self) -> None:
-        dialog = SettingsDialog(self)
+        dialog = SettingsDialog(self, projects_dir=self.ws.projects_dir)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             # Nézetmód-váltás után egyszerűbb, ha a sidebar visszaáll
             # placeholder állapotba, mint egy régi módban nyitott

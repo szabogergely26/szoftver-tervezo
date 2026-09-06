@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QFormLayout,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
     QLineEdit,
     QListWidget,
@@ -121,6 +122,13 @@ class ProjectDetailsWidget(QWidget):
         self.profile_switcher.profile_selected.connect(
             self._on_profile_switch_requested
         )
+        self.profile_switcher.profile_selected.connect(
+            self._on_profile_switch_requested
+        )
+        self.profile_switcher.add_profile_requested.connect(
+            self._on_add_profile_requested
+        )
+
         layout.addWidget(self.profile_switcher)
         self._reload_profile_switcher()
         self.profile_switcher.setVisible(self.project.profiles_enabled)
@@ -212,6 +220,49 @@ class ProjectDetailsWidget(QWidget):
             return
 
         self.active_profile = new_profile
+        self._reload_for_active_profile()
+
+    def _on_add_profile_requested(self) -> None:
+        """Új profil létrehozása a "+" gombra kattintva.
+
+        Ugyanaz a mentetlen-változás védelem, mint profilváltáskor: ha az
+        aktuális profilon van el nem mentett módosítás, előbb azt kell
+        lezárni (Mentés/Elvetés), csak utána kérjük a nevet és hozzuk
+        létre az új profilt.
+        """
+
+        if not self.confirm_close(reason="add_profile"):
+            return
+
+        name, ok = QInputDialog.getText(
+            self,
+            tr("project.profile.add_title"),
+            tr("project.profile.add_name_prompt"),
+        )
+
+        name = name.strip()
+        if not ok or not name:
+            return
+
+        if not self.storage.is_valid_profile_name(name):
+            QMessageBox.warning(
+                self,
+                tr("project.profile.add_title"),
+                tr("project.profile.invalid_name"),
+            )
+            return
+
+        try:
+            self.storage.create_profile(self.project.path, name)
+        except FileExistsError:
+            QMessageBox.warning(
+                self,
+                tr("project.profile.add_title"),
+                tr("project.profile.name_taken", name=name),
+            )
+            return
+
+        self.active_profile = name
         self._reload_for_active_profile()
 
     def _reload_for_active_profile(self) -> None:

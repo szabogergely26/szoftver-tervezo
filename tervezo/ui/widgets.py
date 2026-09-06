@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
-from PySide6.QtCore import QSize, Qt, QTimer, Signal
+from PySide6.QtCore import QSize, Qt, QTimer, Signal, Property, QPropertyAnimation
 from PySide6.QtGui import (
     QAction,
     QBrush,
@@ -14,6 +14,7 @@ from PySide6.QtGui import (
     QTextCharFormat,
 )
 from PySide6.QtWidgets import (
+    QAbstractButton,
     QCheckBox,
     QColorDialog,
     QDialog,
@@ -159,6 +160,7 @@ class ProfileSwitcherBar(QWidget):
     """
 
     profile_selected = Signal(str)
+    add_profile_requested = Signal()
 
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
@@ -172,8 +174,8 @@ class ProfileSwitcherBar(QWidget):
 
         self.add_profile_btn = QPushButton("+")
         self.add_profile_btn.setFixedWidth(28)
-        self.add_profile_btn.setEnabled(False)
-        self.add_profile_btn.setToolTip(tr("project.profile.add_coming_soon"))
+        self.add_profile_btn.setToolTip(tr("project.profile.add_tooltip"))
+        self.add_profile_btn.clicked.connect(self.add_profile_requested.emit)
 
         self.layout_.addWidget(self.add_profile_btn)
         self.layout_.addStretch(1)
@@ -240,6 +242,69 @@ class ProfileSwitcherBar(QWidget):
         if name == self._active:
             return
         self.profile_selected.emit(name)
+
+
+class ToggleSwitch(QAbstractButton):
+    """Klasszikus csúszka-kapcsoló (iOS/Android-stílusú): balra=ki (szürke),
+    jobbra=be (zöld), animált gomb-csúszással.
+
+    Checkable QAbstractButton — a checked állapot Qt-szinten is lekérdezhető
+    (isChecked()), és a toggled(bool) szignál a szokásos módon jelez.
+    """
+
+    def __init__(self, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.setCheckable(True)
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setFixedSize(48, 26)
+
+        self._knob_position = 3.0  # a gomb bal széle, pixelben (animált érték)
+        self._animation = QPropertyAnimation(self, b"knob_position", self)
+        self._animation.setDuration(150)
+
+        self.toggled.connect(self._on_toggled)
+
+    def _on_toggled(self, checked: bool) -> None:
+        end_value = self.width() - self.height() + 3.0 if checked else 3.0
+        self._animation.stop()
+        self._animation.setStartValue(self._knob_position)
+        self._animation.setEndValue(end_value)
+        self._animation.start()
+
+    def get_knob_position(self) -> float:
+        return self._knob_position
+
+    def set_knob_position(self, value: float) -> None:
+        self._knob_position = value
+        self.update()
+
+    knob_position = Property(float, get_knob_position, set_knob_position)
+
+    def setChecked(self, checked: bool) -> None:
+        # Kezdeti / kódból történő állítás esetén (nem felhasználói
+        # kattintás) a gomb pozíciója animáció nélkül, azonnal ugorjon a
+        # helyére - az animáció csak a toggled-jelzésen keresztüli,
+        # felhasználó általi váltáskor fusson (lásd _on_toggled).
+        super().setChecked(checked)
+        self._knob_position = self.width() - self.height() + 3.0 if checked else 3.0
+        self.update()
+
+    def paintEvent(self, event) -> None:  # noqa: ARG002
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        track_color = QColor("#2ecc71") if self.isChecked() else QColor("#c0c3c9")
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(track_color)
+        painter.drawRoundedRect(
+            0, 0, self.width(), self.height(), self.height() / 2, self.height() / 2
+        )
+
+        knob_diameter = self.height() - 6
+        painter.setBrush(QColor("#ffffff"))
+        painter.drawEllipse(int(self._knob_position), 3, knob_diameter, knob_diameter)
+
+        painter.end()
 
 
 class TaskRowWidget(QWidget):

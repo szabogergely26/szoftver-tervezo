@@ -151,6 +151,31 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "hu": "Már van ilyen nevű projekt.",
         "en": "A project with this name already exists.",
     },
+    "settings.category.projects": {"hu": "Projektek", "en": "Projects"},
+    "settings.projects.overview_label": {
+        "hu": "Válassz egy projektet a bal oldali listából a beállításaihoz.",
+        "en": "Select a project from the list on the left to see its settings.",
+    },
+    "settings.projects.multi_profile_label": {
+        "hu": "Több profil",
+        "en": "Multiple profiles",
+    },
+    "settings.projects.disable_multi_warning_title": {
+        "hu": "Több profil kikapcsolása",
+        "en": "Disable multiple profiles",
+    },
+    "settings.projects.disable_multi_warning_text": {
+        "hu": "A(z) „{name}” projektnek jelenleg több aktív profilja van. A több profil kikapcsolásakor csak az általad kiválasztott profil marad meg a projekt gyökerében, a többi inaktívvá válik (később visszaállítható). Folytatod?",
+        "en": "The project “{name}” currently has multiple active profiles. Disabling multiple profiles will keep only the profile you choose at the project root; the rest will become inactive (they can be restored later). Continue?",
+    },
+    "settings.projects.disable_pick_title": {
+        "hu": "Melyik profilt tartsuk meg?",
+        "en": "Which profile should be kept?",
+    },
+    "settings.projects.disable_pick_label": {
+        "hu": "A(z) „{name}” projektnek több aktív profilja van. Melyiket tartsuk meg profil nélküli módban?",
+        "en": "The project “{name}” has multiple active profiles. Which one should remain after disabling profiles?",
+    },
     # -- Névjegy / About
     "main.action.about": {"hu": "Névjegy", "en": "About"},
     "main.sidebar.placeholder": {
@@ -404,9 +429,22 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "en": "Tasks in progress",
     },
     # --- Profilok ---
-    "project.profile.add_coming_soon": {
-        "hu": "Új profil (hamarosan)",
-        "en": "New profile (coming soon)",
+    "project.profile.add_tooltip": {
+        "hu": "Új profil hozzáadása",
+        "en": "Add new profile",
+    },
+    "project.profile.add_title": {"hu": "Új profil", "en": "New profile"},
+    "project.profile.add_name_prompt": {
+        "hu": "Add meg az új profil nevét:",
+        "en": "Enter the name of the new profile:",
+    },
+    "project.profile.invalid_name": {
+        "hu": "Érvénytelen név. Csak betűk, számok, szóköz és kötőjel engedélyezett.",
+        "en": "Invalid name. Only letters, numbers, spaces and hyphens are allowed.",
+    },
+    "project.profile.name_taken": {
+        "hu": "Már létezik „{name}” nevű profil (aktív, inaktív, vagy a kukában).",
+        "en": "A profile named “{name}” already exists (active, inactive, or in trash).",
     },
 }
 

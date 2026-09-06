@@ -127,6 +127,35 @@ class Storage:
 
         return project
 
+    def create_profile(self, project_dir: Path, name: str) -> None:
+        """Új, üres profil létrehozása egy már profilos projekten belül.
+
+        Nem érinti a project.json-t (nem változtatja meg az active_profile-t
+        - azt a hívó UI-rétegnek kell eldöntenie, hogy rögtön át akar-e váltani
+            az új profilra). FileExistsError-t dob, ha már van ilyen nevű aktív,
+            inaktív, vagy kukában lévő profil, mert a névnek egyedinek kell lennie
+            ezen a három terület között is - két profil ugyanazzal a névvel
+            összezavarná a visszaállítási/re-enable logikát.
+        """
+        target_dir = project_dir / PROFILES_DIR / name
+        if target_dir.exists():
+            raise FileExistsError(target_dir)
+
+        inactive_dir = project_dir / PROFILES_DIR / INACTIVE_DIR / name
+        if inactive_dir.exists():
+            raise FileExistsError(inactive_dir)
+
+        trash_dir = project_dir / PROFILES_DIR / TRASH_DIR
+        if trash_dir.exists():
+            for d in trash_dir.iterdir():
+                if d.is_dir() and d.name.startswith(f"{name}__"):
+                    raise FileExistsError(d)
+
+        target_dir.mkdir(parents=True)
+        (target_dir / TASKS_FILE).write_text("[]", encoding="utf-8")
+        (target_dir / JOURNAL_FILE).write_text("<p><br></p>", encoding="utf-8")
+        self.write_profile_data(project_dir, name, ProfileData())
+
     def _copy_photo(self, project_dir: Path, photo_source: Path) -> str:
         assets_dir = project_dir / ASSETS_DIR
         assets_dir.mkdir(exist_ok=True)
@@ -315,6 +344,19 @@ class Storage:
         """A Varázsló vesszővel elválasztott feladatlista-mezőjének szétbontása."""
         return [part.strip() for part in raw.split(",") if part.strip()]
 
+    def is_valid_profile_name(self, name: str) -> bool:
+        """Igaz, ha a név elfogadható profil-mappanévnek.
+
+        Csak betűk (ékezetes magyar betűk is), számok, szóköz és kötőjel
+        engedélyezett - a perjel, backslash és egyéb fájlrendszeri
+        vezérlőkarakterek kizárva, mert a név közvetlenül mappanévvé válik
+        (profiles/<name>/). Az üres vagy csak szóközből álló név érvénytelen.
+        """
+        stripped = name.strip()
+        if not stripped:
+            return False
+        return bool(re.fullmatch(r"[\w\sáéíóöőúüűÁÉÍÓÖŐÚÜŰ-]+", stripped))
+
     def set_task_done(self, project_dir: Path, task_id: int, done: bool) -> None:
         tasks = self.read_tasks(project_dir)
         for t in tasks:
@@ -423,6 +465,11 @@ class Storage:
 
         for other_dir in self._active_profile_dirs(project_dir):
             self._move_profile_to_inactive(project_dir, other_dir.name)
+
+        project = self.read_project(project_dir)
+        project.profiles_enabled = False
+        project.active_profile = None
+        self.write_project(project)
 
     def _active_profile_dirs(self, project_dir: Path) -> list[Path]:
         profiles_dir = project_dir / PROFILES_DIR
