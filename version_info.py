@@ -20,4 +20,4 @@ patch (0.3.0 → 0.3.1): javítás, bugfix, apró finomítás — pl. a set_task
 """
 
 APP_VERSION = "0.7.4"
-BUILD_CHANNEL = "main"  # "dev" | "preview" | "main"
+BUILD_CHANNEL = "stable"  # "dev" | "preview" | "stable"

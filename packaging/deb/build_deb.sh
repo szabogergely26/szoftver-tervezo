@@ -8,22 +8,20 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 BUILD_CHANNEL="$(python3 -c "import sys; sys.path.insert(0, '$PROJECT_DIR'); from version_info import BUILD_CHANNEL; print(BUILD_CHANNEL)")"
 
-# A csomagnév, a megjelenített alkalmazásnév és az APT-suite a BUILD_CHANNEL-től
-# függ (version_info.py az egységes forrás) - így a stabil (main) és a preview
-# csomag egymás mellett, ütközés nélkül telepíthető ugyanarra a gépre.
+# A csomagnév és a megjelenített alkalmazásnév a BUILD_CHANNEL-től függ
+# (version_info.py az egységes forrás) - így a stabil és a preview csomag
+# egymás mellett, ütközés nélkül telepíthető ugyanarra a gépre.
 case "$BUILD_CHANNEL" in
     preview)
         PACKAGE_NAME="tervezo-preview"
         APP_DISPLAY_NAME="Tervező (Preview)"
-        APT_SUITE="preview"
         ;;
-    main)
+    stable)
         PACKAGE_NAME="tervezo"
         APP_DISPLAY_NAME="Tervező"
-        APT_SUITE="stable"
         ;;
     *)
-        echo "Hiba: .deb csomag csak 'main' vagy 'preview' BUILD_CHANNEL-ből építhető (kapott: $BUILD_CHANNEL)."
+        echo "Hiba: .deb csomag csak 'stable' vagy 'preview' BUILD_CHANNEL-ből építhető (kapott: $BUILD_CHANNEL)."
         exit 1
         ;;
 esac
@@ -65,7 +63,6 @@ while IFS= read -r -d '' src_file; do
         sed \
             -e "s/\${PACKAGE_NAME}/$PACKAGE_NAME/g" \
             -e "s/\${APP_DISPLAY_NAME}/$APP_DISPLAY_NAME/g" \
-            -e "s/\${APT_SUITE}/$APT_SUITE/g" \
             "$src_file" > "$dest_file"
     else
         dest_file="$PACKAGE_DIR/$rel_path"
@@ -106,29 +103,10 @@ BUILD_COMMIT: str = "$BUILD_COMMIT"
 BUILD_DATE: str = "$BUILD_DATE"
 EOF
 
-
-
-
 sed \
     -e "s/\${PACKAGE_NAME}/$PACKAGE_NAME/g" \
     -e "s/\${VERSION}/$VERSION/g" \
     "$SCRIPT_DIR/control.in" > "$DEBIAN_DIR/control"
-
-# Szoftverforrás (APT repo) automatikus regisztrálásához szükséges fájlok.
-# A csatorna-specifikus névre töltjük ki és nevezzük át (l. postinst.in),
-# hogy a stabil és a preview csomag APT-beállítása ne írja felül egymást.
-mkdir -p "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/apt-repo-setup"
-
-cp "$SCRIPT_DIR/../apt/tervezo-archive-keyring.gpg" \
-    "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/apt-repo-setup/$PACKAGE_NAME-archive-keyring.gpg"
-
-sed "s/\${PACKAGE_NAME}/$PACKAGE_NAME/g; s/\${APT_SUITE}/$APT_SUITE/g" \
-    "$SCRIPT_DIR/../apt/tervezo.sources.in" \
-    > "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/apt-repo-setup/$PACKAGE_NAME.sources"
-
-sed "s/\${PACKAGE_NAME}/$PACKAGE_NAME/g; s/\${APT_SUITE}/$APT_SUITE/g" \
-    "$SCRIPT_DIR/../apt/tervezo.pref.in" \
-    > "$PACKAGE_DIR/usr/share/$PACKAGE_NAME/apt-repo-setup/$PACKAGE_NAME.pref"
 
 sed "s/\${PACKAGE_NAME}/$PACKAGE_NAME/g" "$SCRIPT_DIR/postinst.in" > "$DEBIAN_DIR/postinst"
 

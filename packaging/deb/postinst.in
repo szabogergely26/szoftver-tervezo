@@ -1,12 +1,5 @@
 #!/bin/bash
 set -e
-SRC_DIR="/usr/share/${PACKAGE_NAME}/apt-repo-setup"
-mkdir -p /usr/share/keyrings
-cp -f "$SRC_DIR/${PACKAGE_NAME}-archive-keyring.gpg" "/usr/share/keyrings/${PACKAGE_NAME}-archive-keyring.gpg"
-mkdir -p /etc/apt/sources.list.d
-cp -f "$SRC_DIR/${PACKAGE_NAME}.sources" "/etc/apt/sources.list.d/${PACKAGE_NAME}.sources"
-mkdir -p /etc/apt/preferences.d
-cp -f "$SRC_DIR/${PACKAGE_NAME}.pref" "/etc/apt/preferences.d/${PACKAGE_NAME}.pref"
 
 if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database -q /usr/share/applications || true
